@@ -1,0 +1,31 @@
+🔹 Название TV (tour_stories): tour_stories
+🔹 Заголовок (Сторис тура): Сторис тура
+🔹 Тип ввода (migx): migx
+🔹 Параметры ввода (input options / default value / validation): Вкладки формы:
+[
+  {
+    "caption": "Сторис",
+    "fields": [
+      {"field": "type", "caption": "Тип", "inputTVtype": "listbox", "inputOptionValues": "Изображение==image||Видео==video", "default": "image"},
+      {"field": "thumb", "caption": "Превью / Постер", "inputTVtype": "image"},
+      {"field": "video", "caption": "Видео MP4", "inputTVtype": "file"},
+      {"field": "text", "caption": "Текст поверх", "inputTVtype": "textarea"},
+      {"field": "link_url", "caption": "Ссылка (URL)", "inputTVtype": "text", "description": "Вставьте полный URL или путь от корня. Оставьте пустым, если ссылка не нужна."},
+      {"field": "duration", "caption": "Время показа (мс)", "inputTVtype": "number", "default": "6000"}
+    ]
+  }
+]
+Разметка колонок:
+[
+  {"header": "Тип", "dataIndex": "type", "width": 50},
+  {"header": "Превью", "dataIndex": "thumb", "width": 100},
+  {"header": "Видео", "dataIndex": "video", "width": 100},
+  {"header": "Текст", "dataIndex": "text", "width": 150},
+  {"header": "Ссылка", "dataIndex": "link_url", "width": 150},
+  {"header": "Время", "dataIndex": "duration", "width": 70}
+]
+
+🔹 Параметры вывода (output type / render / default output): по умолчанию
+🔹 Привязан к шаблонам (ID или названия): главная, тур
+🔹 Как вызывается в коде/чанке/шаблоне (пример тега): не згаю
+🔹 Версия MODX (2.x или 3.x): MODX Revolution 2.8.8-pl
