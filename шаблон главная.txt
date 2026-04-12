@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    [[$head]]
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            color: #fff;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: #8a9956;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn:hover {
+            background-color: #6e7d45;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Шапка */
+        header {
+            background-color: rgba(37, 41, 41, 1);
+            padding: 20px 0;
+            position: fixed;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .header-container {
+            display: flex;
+            justify-content: center;
+        }
+        
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+        
+        .nav-menu li a {
+            font-size: 16px;
+            font-weight: 600;
+            position: relative;
+            padding: 5px 0;
+        }
+        
+        .nav-menu li a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: #8a9956;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-menu li a:hover::after {
+            width: 100%;
+        }
+        
+        /* Херо-блок с видео */
+        .hero {
+            height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding-top: 60px;
+            overflow: hidden;
+        }
+        
+        .hero-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+        
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4));
+            z-index: -1;
+        }
+        
+        .hero-content {
+            max-width: 800px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .hero-logo {
+            font-size: 80px;
+            margin-bottom: 20px;
+            color: #fff;
+            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .hero-logo img {
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
+        }
+        
+        .hero p {
+            font-size: 24px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        
+        /* Секции */
+        section {
+            padding: 80px 0;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 50px;
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            width: 100px;
+            height: 3px;
+            background-color: #8a9956;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        /* Секция Камчатка */
+        .kamchatka {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        
+        .cards-container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 60px;
+        }
+        
+        .card {
+            flex: 1;
+            min-width: 300px;
+            max-width: 400px;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .card-image {
+            height: 300px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card-image::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60%;
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+            z-index: 1;
+        }
+        
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        
+        .card:hover .card-image img {
+            transform: scale(1.05);
+        }
+        
+        .card-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            z-index: 2;
+        }
+        
+        .card h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .section-logo {
+            display: flex;
+            text-align: center;
+            align-items: center;
+            font-size: 60px;
+            color: #fff;
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .section-logo img {
+            display: block;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        /* Секция Направления */
+        .directions {
+            background-color: #252929;
+        }
+        
+        .directions-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .direction-card {
+            display: block;
+            width: 300px;
+            min-width: auto;
+            border-radius: 10px;
+            overflow: hidden;
+            flex: auto;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        @media (max-width: 992px) {
+            .direction-card {
+                width: calc(50% - 20px);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .direction-card {
+                width: 100%;
+                max-width: 350px;
+            }
+        }
+        
+        /* Секция Круизы */
+        .cruises {
+            background-color: #252929;
+        }
+        
+        .gallery-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+        }
+        
+        .gallery-item {
+            height: 200px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        
+        .gallery-item:hover img {
+            transform: scale(1.05);
+        }
+        
+        /* Секция Подбор тура */
+        .tour-selection {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1501785888041-af3ef285b470?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .selection-container {
+            background-color: #252929;
+            padding: 40px;
+            border-radius: 10px;
+            max-width: 1200px;
+            margin: 0 auto 40px;
+        }
+        
+        .selection-form {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background-color: #333;
+            color: white;
+            font-size: 16px;
+        }
+        
+        .form-group input::placeholder {
+            color: #aaa;
+        }
+        
+        .form-btn {
+            flex: 0 0 auto;
+            align-self: flex-end;
+        }
+        
+        /* Секция Услуги */
+        .services {
+            background-color: #8a9956;
+        }
+        
+        .services-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 30px;
+        }
+        
+        .service-item {
+            text-align: center;
+        }
+        
+        .service-icon {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin: 0 auto 20px;
+            border: 5px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .service-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .service-item h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        /* Секция B2B */
+        .b2b {
+            background-color: #333939;
+        }
+        
+        .b2b-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .b2b-header h2 {
+            font-size: 36px;
+        }
+        
+        .b2b-logo {
+            font-size: 40px;
+            margin-left: 20px;
+        }
+
+        .b2b-logo img {
+            width: 200px;
+        }
+        
+        .b2b-content {
+            margin: 0 auto;
+        }
+        
+        .b2b-section {
+            margin-bottom: 25px;
+        }
+        
+        .b2b-section h3 {
+            color: #8a9956;
+            margin-bottom: 10px;
+            font-size: 22px;
+        }
+        
+        /* Футер */
+        footer {
+            background-color: #1a1d1d;
+            padding: 40px 0 20px;
+        }
+        
+        .footer-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+        
+        .footer-logo {
+            font-size: 40px;
+            margin-bottom: 15px;
+            color: #8a9956;
+        }
+        
+        .footer-info p {
+            margin-bottom: 8px;
+            opacity: 0.8;
+        }
+        
+        .footer-links {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .footer-links a {
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+        
+        .footer-links a:hover {
+            opacity: 1;
+            color: #8a9956;
+        }
+        
+        .social-icons {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            background-color: #333;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        .social-icon:hover {
+            background-color: #8a9956;
+            transform: translateY(-3px);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+            opacity: 0.7;
+            font-size: 14px;
+        }
+        
+        /* Виджет соцсетей */
+        .social-widget {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1000;
+        }
+        
+        .social-widget-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-color: rgba(37, 41, 41, 0.9);
+            padding: 15px;
+            border-radius: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .social-widget-icon {
+            width: 50px;
+            height: 50px;
+            background-color: #333;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            transition: all 0.3s ease;
+        }
+
+        .social-widget-icon svg {
+            width: 20px;
+        }
+        
+        .social-widget-icon:hover {
+            background-color: #8a9956;
+            transform: scale(1.1);
+        }
+        
+        /* Секция Круизы - обновленные стили */
+        .cruises {
+            background-color: #252929;
+            padding: 80px 0;
+        }
+
+        .cruises-gallery {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .cruise-card {
+            background: #333939;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cruise-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .cruise-image {
+            height: 250px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .cruise-image::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40%;
+            background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .cruise-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+
+        .cruise-card:hover .cruise-image img {
+            transform: scale(1.1);
+        }
+
+        .cruise-info {
+            padding: 20px 15px 18px;
+            background-color: #333939;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 2;
+        }
+
+        .cruise-info h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #fff;
+            line-height: 1.3;
+        }
+
+        .cruise-info p {
+            font-size: 16px;
+            color: #8a9956;
+            font-weight: 500;
+            margin-bottom: 0;
+            letter-spacing: 0.3px;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 1100px) {
+            .services-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .cruises-gallery {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+            
+            .cruise-image {
+                height: 220px;
+            }
+            
+            .cruise-info h3 {
+                font-size: 18px;
+            }
+            
+            .cruise-info p {
+                font-size: 15px;
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .cruises-gallery {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 20px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header-container {
+                justify-content: flex-start;
+                overflow-x: auto;
+            }
+            
+            .nav-menu {
+                gap: 15px;
+                padding: 0 10px;
+            }
+            
+            .hero h1 {
+                font-size: 36px;
+            }
+            
+            .hero p {
+                font-size: 20px;
+            }
+            
+            .cards-container {
+                flex-direction: column;
+            }
+            
+            .card {
+                width: 100%;
+            }
+            
+            .gallery-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .selection-form {
+                flex-direction: column;
+            }
+            
+            .services-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .footer-container {
+                flex-direction: column;
+                gap: 30px;
+            }
+            
+            .social-widget {
+                display: flex;
+                left: 0;
+                right: 0;
+                bottom: 20px;
+                margin: auto;
+                top: auto !important;
+                transform: unset !important;
+                justify-content: center;
+            }
+            
+            .social-widget-container {
+                flex-direction: row;
+            }
+            
+            .cruises {
+                padding: 60px 0;
+            }
+            
+            .cruises-gallery {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 18px;
+            }
+            
+            .cruise-image {
+                height: 200px;
+            }
+            
+            .cruise-info {
+                padding: 15px 12px;
+            }
+            
+            .cruise-info h3 {
+                font-size: 17px;
+                margin-bottom: 5px;
+            }
+            
+            .cruise-info p {
+                font-size: 14px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .services-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .selection-container {
+                padding: 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .cruises-gallery {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                max-width: 350px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            
+            .cruise-image {
+                height: 220px;
+            }
+            
+            .cruise-info h3 {
+                font-size: 18px;
+            }
+            
+            .cruise-info p {
+                font-size: 15px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .cruise-image {
+                height: 190px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="/assets/css/stories.css">
+    <script src="/assets/js/stories.js" defer></script>
+</head>
+<body>
+    [[$header]]
+    
+    <!-- Херо-блок с видео -->
+    <section class="hero">
+        <!-- Видео фон -->
+        <video class="hero-video" autoplay muted loop playsinline>
+            <source src="[[*hero-video]]" type="video/mp4">
+            <!-- Резервное изображение, если видео не загрузится -->
+            <img src="[[*hero-bg]]" alt="Background" style="object-fit: cover; width: 100%; height: 100%;">
+        </video>
+        <!-- Затемняющий оверлей -->
+        <div class="hero-overlay"></div>
+        
+        <div class="hero-content">
+            <div class="hero-logo">
+                <img src="logo.png">
+            </div>
+            <h1>[[*hero-title]]</h1>
+            <p>[[*hero-descr]]</p>
+            <a href="[[~3]]" class="btn">Забронировать</a>
+        </div>
+    </section>
+    
+    <!-- Секция Камчатка -->
+    <section id="kamchatka" class="kamchatka">
+        <div class="container">
+            <h2 class="section-title">Камчатка</h2>
+                                    [[!getTourStories? 
+                          &tvName=`tour_stories` 
+                          &tplList=`tpl.stories.list` 
+                          &tplItem=`tpl.stories.item`
+                        ]]
+            
+            <div class="cards-container">
+                
+                [[!pdoResources?
+                  &parents=`11`
+                  &depth=`0`
+                  &tpl=`main-kam-item`
+                  &sortdir=`ASC`
+                  &includeTVs=`categ-img`
+                ]]
+                
+            </div>
+            
+            <div class="section-logo"><img src="logo.png"></div>
+        </div>
+    </section>
+    
+    <!-- Секция Направления -->
+    <section id="directions" class="directions">
+        <div class="container">
+            <h2 class="section-title">Направления</h2>
+            
+            <div class="directions-container">
+                
+                [[!pdoResources?
+                  &parents=`85`
+                  &depth=`0`
+                  &tpl=`main-kam-item`
+                  &includeTVs=`categ-img`
+                ]]
+                
+            </div>
+        </div>
+    </section>
+    
+    <!-- Секция Круизы (обновленная) -->
+    <section id="cruises" class="cruises">
+        <div class="container">
+            <h2 class="section-title">Круизы</h2>
+            
+            <div class="cruises-gallery">
+                
+                [[!msProducts?
+                    &parents=`17`
+                    &depth=`10`
+                    &includeTVs=`image`
+                    &tpl=`cruiz-main-item`
+                    &limit=`999`
+                ]]
+                
+            </div>
+        </div>
+    </section>
+    
+    <!-- Секция Подбор тура -->
+    <section id="selection" class="tour-selection">
+        <div class="container">
+            <h2 class="section-title">Подбор тура</h2>
+            
+            <div class="selection-container">
+                <form class="selection-form">
+                    
+                    <div class="form-group">
+                        <select required>
+                            <option value="" disabled selected>Направление</option>
+                            <option value="[[~11]]">Камчатка</option>
+                            <option value="[[~12]]">Сахалин и курилы</option>
+                            <option value="[[~15]]">Шантары</option>
+                            <option value="[[~13]]">Китай</option>
+                            <option value="[[~16]]">Шри-Ланка</option>
+                            <option value="[[~14]]">Турция</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <select>
+                            <option value="" disabled selected>Кол-во ночей</option>
+                            <option value="3">3 ночи</option>
+                            <option value="5">5 ночей</option>
+                            <option value="7">7 ночей</option>
+                            <option value="10">10 ночей</option>
+                            <option value="14">14 ночей</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group form-btn">
+                        <button type="submit" class="btn">Найти туры</button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="section-logo">
+                <img src="logo.png">
+            </div>
+        </div>
+    </section>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('.selection-form');
+        
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // Предотвращаем стандартную отправку формы
+            
+            // Получаем выбранное направление
+            const directionSelect = form.querySelector('select:nth-of-type(1)');
+            const selectedDirection = directionSelect.value;
+            
+            // Проверяем, что направление выбрано
+            if (!selectedDirection || selectedDirection === '') {
+                alert('Пожалуйста, выберите направление');
+                return;
+            }
+            
+            // Перенаправляем на URL из value выбранной опции
+            window.location.href = selectedDirection;
+        });
+    });
+    </script>
+    
+    <!-- Секция Услуги -->
+    <section id="services" class="services">
+        <div class="container">
+            <h2 class="section-title">Услуги на Камчатке</h2>
+            
+            <div class="services-container">
+                
+                [[!msProducts?
+                    &parents=`7`
+                    &depth=`10`
+                    &includeTVs=`image`
+                    &tpl=`usluga-main-item`
+                    &limit=`999`
+                ]]
+                
+            </div>
+        </div>
+    </section>
+    
+    <!-- Секция B2B -->
+    <section id="b2b" class="b2b">
+        <div class="container">
+            <div class="b2b-header">
+                <h2>Ключевые решения B2B</h2>
+                <div class="b2b-logo"><img src="logo.png"></div>
+            </div>
+            
+            <div class="b2b-content">
+                <div class="b2b-section">
+                    [[*bb-text]]
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    [[$footer]]
+
+    <script>
+        // Плавная прокрутка для ссылок меню
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // Фиксация шапки при скролле
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('header');
+            if (window.scrollY > 100) {
+                header.style.backgroundColor = 'rgba(37, 41, 41, 1)';
+            } else {
+                header.style.backgroundColor = 'rgba(37, 41, 41, 1)';
+            }
+        });
+        
+        // Обновление текущего года в футере
+        document.addEventListener('DOMContentLoaded', function() {
+            const yearElement = document.querySelector('.copyright p');
+            if (yearElement) {
+                const currentYear = new Date().getFullYear();
+                yearElement.innerHTML = yearElement.innerHTML.replace('2023', currentYear);
+            }
+        });
+
+        // Опционально: пауза видео при потере видимости для экономии ресурсов
+        document.addEventListener('DOMContentLoaded', function() {
+            const video = document.querySelector('.hero-video');
+            
+            if (video) {
+                // Используем Intersection Observer для паузы видео, когда оно не в зоне видимости
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            video.play();
+                        } else {
+                            video.pause();
+                        }
+                    });
+                }, { threshold: 0.1 });
+                
+                observer.observe(video);
+            }
+        });
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "name": "Это твоя Камчатка",
+        "image": "https://kamchatka-tour.online/logo.png",
+        "telephone": "+7 (984) 164-11-88",
+        "email": "tvoyakamchatka41@mail.ru",
+        "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "проспект 50 лет Октября 7/2",
+            "addressLocality": "Петропавловск-Камчатский",
+            "addressRegion": "Петропавловск-Камчатский",
+            "postalCode": "683024",
+            "addressCountry": "RU"
+        },
+        "url": "https://kamchatka-tour.online",
+        "sameAs": [
+            "https://wa.me/+79841641188",
+            "https://t.me/eto_tvoya_kamchatka41",
+            "https://max.ru/u/f9LHodD0cOInxcZ4ixO1UFOu4IIBbFg8Dw2IOAp_AuMtx4BKWSSLP4clCxY"
+        ],
+        "openingHours": "24/7",
+        "priceRange": ""
+    }
+    </script>
+            <div class="story-viewer" id="storyViewer" aria-hidden="true">
+          <div class="story-viewer__overlay"></div>
+          <div class="story-viewer__progress" id="storyProgress">
+            <div class="story-viewer__progress-bar"></div>
+          </div>
+          
+          <div class="story-viewer__content">
+              <div class="story-viewer__loader"></div>
+              
+            <img id="storyMedia" class="story-viewer__media" alt="">
+            <video id="storyVideo" class="story-viewer__media" muted playsinline></video>
+            
+            <div class="story-viewer__text" id="storyText"></div>
+            <button class="story-viewer__nav story-viewer__nav--prev" id="storyPrev" aria-label="Предыдущая">‹</button>
+            <button class="story-viewer__nav story-viewer__nav--next" id="storyNext" aria-label="Следующая">›</button>
+            <button class="story-viewer__close" id="storyClose" aria-label="Закрыть">×</button>
+            <div class="story-viewer__swipe-hint">Свайп вниз для закрытия</div>
+          </div>
+        </div>
+</body>
+</html>
