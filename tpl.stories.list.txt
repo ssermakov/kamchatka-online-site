@@ -1,0 +1,3 @@
+<nav class="stories-nav" aria-label="Истории тура">
+  <ul class="stories-list">[[+items]]</ul>
+</nav>

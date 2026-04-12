@@ -1,0 +1,4 @@
+<li class="stories-item" data-index="[[+index]]" tabindex="0" role="button" aria-label="Открыть историю [[+index]]">
+  <img src="[[+thumb]]" alt="[[+alt]]" loading="lazy" class="stories-thumb" decoding="async">
+  <span class="stories-badge" aria-hidden="true">▶</span>
+</li>

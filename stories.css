@@ -1,0 +1,128 @@
+:root {
+  --story-bg: #000;
+  --story-progress: rgba(255,255,255,0.25);
+  --story-progress-active: #fff;
+  --story-nav-bg: rgba(0,0,0,0.5);
+  --story-ring: rgba(255,255,255,0.2);
+  --story-ring-active: #fff;
+}
+
+/* Список превью */
+.stories-list {
+  display: flex; gap: 10px; overflow-x: auto; padding: 10px 0;
+  scrollbar-width: none; -ms-overflow-style: none;
+  list-style: none; margin: 0; padding-left: 15px; padding-right: 15px;
+  -webkit-overflow-scrolling: touch;
+}
+.stories-list::-webkit-scrollbar { display: none; }
+
+.stories-item {
+  flex: 0 0 70px; height: 70px; border-radius: 12px; overflow: hidden;
+  position: relative; cursor: pointer; border: 2px solid var(--story-ring);
+  transition: transform 0.2s, border-color 0.2s; scroll-snap-align: start;
+}
+.stories-item:hover, .stories-item.active { border-color: var(--story-ring-active); transform: scale(1.05); }
+.stories-thumb { width: 100%; height: 100%; object-fit: cover; }
+.stories-badge {
+  position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6);
+  color: #fff; border-radius: 50%; width: 16px; height: 16px; font-size: 8px;
+  display: grid; place-items: center; backdrop-filter: blur(2px);
+}
+
+/* Просмотрщик */
+.story-viewer {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
+}
+.story-viewer.open { opacity: 1; pointer-events: auto; }
+.story-viewer__overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.88); }
+
+/* Прогресс-бар */
+.story-viewer__progress {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top) + 10px); /* Учет "челки" и статус-бара iOS/Android */
+  left: 12px; right: 12px;
+  height: 3px;
+  background: var(--story-progress);
+  border-radius: 2px;
+  z-index: 20; /* 🔑 Ключевое: выше контента (z-index: 3) и навигации */
+  overflow: hidden;
+  pointer-events: none; /* Не блокирует свайпы и клики */
+}
+
+.story-viewer__progress-bar {
+  height: 100%; width: 0;
+  background: var(--story-progress-active);
+  transition: width 0.1s linear;
+  box-shadow: 0 0 4px rgba(0,0,0,0.3); /* Улучшает контраст на светлых изображениях */
+}
+
+.story-viewer__content {
+  position: relative; width: min(92vw, 400px); height: min(85vh, 720px);
+  background: var(--story-bg); border-radius: 12px; overflow: hidden;
+  z-index: 4; display: grid; place-items: center;
+}
+
+/* 🔧 Лоадер */
+.story-viewer__loader {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.4); z-index: 5; opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.story-viewer__loader.active { opacity: 1; pointer-events: auto; }
+.story-viewer__loader::after {
+  content: ''; width: 36px; height: 36px; border: 3px solid rgba(255,255,255,0.3);
+  border-top-color: #fff; border-radius: 50%; animation: storySpin 0.8s linear infinite;
+}
+@keyframes storySpin { to { transform: rotate(360deg); } }
+
+/* Медиа */
+.story-viewer__media {
+  width: 100%; height: 100%; object-fit: contain; display: none; background: #000;
+}
+.story-viewer__media.active { display: block; }
+
+/* 🔧 Текст сторис */
+.story-viewer__text {
+  position: absolute; bottom: 32px; left: 0; right: 0; text-align: center;
+  color: #fff; font-size: clamp(14px, 4vw, 16px); padding: 0 20px;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.85); opacity: 0;
+  transition: opacity 0.3s ease; line-height: 1.45; overflow-wrap: break-word;
+  pointer-events: auto; /* Важно для клика по ссылке */
+}
+.story-viewer__text.visible { opacity: 1; }
+.story-viewer__text.has-link { cursor: pointer; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.5); }
+.story-viewer__text.has-link:hover { text-decoration-color: #fff; }
+
+/* Навигация */
+.story-viewer__nav {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 5;
+  background: var(--story-nav-bg); color: #fff; border: none; width: 42px; height: 42px;
+  border-radius: 50%; cursor: pointer; font-size: 20px; display: none;
+  place-items: center; backdrop-filter: blur(4px); transition: background 0.2s;
+}
+.story-viewer__nav:hover { background: rgba(255,255,255,0.3); }
+.story-viewer__nav--prev { left: 12px; }
+.story-viewer__nav--next { right: 12px; }
+@media (min-width: 768px) { .story-viewer__nav { display: grid; } }
+
+.story-viewer__close {
+  position: absolute; top: 14px; right: 14px; z-index: 6; background: rgba(0,0,0,0.5);
+  border: none; color: #fff; font-size: 24px; cursor: pointer; padding: 6px;
+  border-radius: 50%; width: 38px; height: 38px; display: grid; place-items: center;
+}
+.story-viewer__close:hover { background: rgba(255,255,255,0.2); }
+
+/* Подсказка свайпа */
+.story-viewer__swipe-hint {
+  position: absolute; bottom: 8px; left: 0; right: 0; text-align: center;
+  color: rgba(255,255,255,0.4); font-size: 11px; pointer-events: none; letter-spacing: 0.3px;
+}
+@media (min-width: 768px) { .story-viewer__swipe-hint { display: none; } }
+
+/* 📱 Мобильная адаптация */
+@media (max-width: 767px) {
+  .story-viewer__content { width: 100vw; height: 100vh; border-radius: 0; max-width: none; max-height: none; }
+  .story-viewer__text { bottom: 48px; } /* Чуть выше на мобильных из-за safe-area */
+}

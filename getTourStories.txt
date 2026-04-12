@@ -1,0 +1,74 @@
+<?php
+/**
+ * getTourStories
+ * @param tvName string Имя TV (по умолчанию tour_stories)
+ * @param tplList string Чанк обертки
+ * @param tplItem string Чанк одного превью
+ */
+$tvName  = $modx->getOption('tvName', $scriptProperties, 'tour_stories');
+$tplList = $modx->getOption('tplList', $scriptProperties, 'tpl.stories.list');
+$tplItem = $modx->getOption('tplItem', $scriptProperties, 'tpl.stories.item');
+
+$tvValue = $modx->resource->getTVValue($tvName);
+$stories = $modx->fromJSON($tvValue);
+
+if (empty($stories) || !is_array($stories)) {
+    return '';
+}
+
+$items    = array();
+$dataJSON = array();
+
+foreach ($stories as $i => $story) {
+    $type  = isset($story['type']) ? trim($story['type']) : 'image';
+    $url   = '';
+    $thumb = '';
+
+    if ($type === 'video') {
+        $url   = isset($story['video']) ? trim($story['video']) : '';
+        $thumb = isset($story['thumb']) ? trim($story['thumb']) : '';
+    } else {
+        $url   = isset($story['thumb']) ? trim($story['thumb']) : '';
+        $thumb = $url;
+    }
+
+    if (empty($url)) continue;
+
+    // Нормализация путей
+    if (!preg_match('#^https?://#i', $url))  $url  = '/' . ltrim($url, '/');
+    if (!empty($thumb) && !preg_match('#^https?://#i', $thumb)) $thumb = '/' . ltrim($thumb, '/');
+
+    // Обработка ссылки (новое поле)
+    $linkUrl = isset($story['link_url']) ? trim($story['link_url']) : '';
+    if (!empty($linkUrl) && !preg_match('#^https?://|^/#i', $linkUrl)) {
+        $linkUrl = '/' . ltrim($linkUrl, '/');
+    }
+
+    $duration = isset($story['duration']) ? (int)$story['duration'] : 6000;
+    if ($duration < 2000) $duration = 2000;
+
+    $dataJSON[] = array(
+        'index'    => (int)$i,
+        'type'     => $type,
+        'url'      => $url,
+        'text'     => htmlspecialchars(isset($story['text']) ? $story['text'] : '', ENT_QUOTES, 'UTF-8'),
+        'link_url' => htmlspecialchars($linkUrl, ENT_QUOTES, 'UTF-8'),
+        'duration' => $duration
+    );
+
+    $items[] = $modx->getChunk($tplItem, array(
+        'index' => (int)$i,
+        'thumb' => htmlspecialchars($thumb, ENT_QUOTES, 'UTF-8'),
+        'alt'   => htmlspecialchars(isset($story['text']) ? $story['text'] : 'История ' . ($i + 1), ENT_QUOTES, 'UTF-8')
+    ));
+}
+
+if (empty($items)) return '';
+
+$jsonFlags = JSON_UNESCAPED_UNICODE;
+if (defined('JSON_UNESCAPED_SLASHES')) {
+    $jsonFlags |= JSON_UNESCAPED_SLASHES;
+}
+
+$jsonData = '<script type="application/json" id="tour-stories-data">' . json_encode($dataJSON, $jsonFlags) . '</script>';
+return $jsonData . $modx->getChunk($tplList, array('items' => implode('', $items)));

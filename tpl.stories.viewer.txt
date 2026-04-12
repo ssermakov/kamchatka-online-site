@@ -1,0 +1,12 @@
+<div class="story-viewer" id="storyViewer" aria-hidden="true">
+  <div class="story-viewer__overlay"></div>
+  <div class="story-viewer__progress" id="storyProgress"></div>
+  <div class="story-viewer__content" id="storyContent">
+    <img src="" alt="" class="story-viewer__media" id="storyMedia">
+    <video src="" class="story-viewer__media" id="storyVideo" playsinline muted></video>
+    <div class="story-viewer__text" id="storyText"></div>
+  </div>
+  <button class="story-viewer__nav story-viewer__nav--prev" id="storyPrev">←</button>
+  <button class="story-viewer__nav story-viewer__nav--next" id="storyNext">→</button>
+  <button class="story-viewer__close" id="storyClose">✕</button>
+</div>
