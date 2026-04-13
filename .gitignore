@@ -1,4 +1,33 @@
-```css
-/* No build artifacts, dependencies, or temp files detected in changes */
-/* Only CSS, JS, and template files present - no ignores needed */
+```
+# Dependencies
+node_modules/
+
+# Logs and temp files
+*.log
+*.tmp
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Editors
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Build outputs
+dist/
+build/
+*.min.js
+*.bundle.js
+
+# OS generated files
+.DS_Store
+Thumbs.db
 ```
