@@ -27,6 +27,7 @@
       this.touchStartX = 0;
       this.swipeThreshold = 50;
       this.currentLink = '';
+      this.instagramBtn = document.getElementById('storyInstagram');
 
       this.init();
     }
@@ -45,6 +46,7 @@
     }
 
     bindEvents() {
+      // Обработчик открытия сторис по клику на превью
       document.addEventListener('click', (e) => {
         const item = e.target.closest('.stories-item, .stories-item__link');
         if (item && this.el) {
@@ -53,7 +55,7 @@
           const idx = parseInt(item.dataset.index, 10);
           if (!isNaN(idx)) this.open(idx);
         }
-      }, true);
+      });
 
       if (this.prevBtn) this.prevBtn.addEventListener('click', (e) => { e.stopPropagation(); this.prev(); });
       if (this.nextBtn) this.nextBtn.addEventListener('click', (e) => { e.stopPropagation(); this.next(); });
@@ -67,6 +69,7 @@
         if (e.key === 'ArrowLeft') this.prev();
       });
 
+      // Пауза/возобновление при взаимодействии
       const pause = () => {
         this.isPaused = true;
         if (this.mediaVid && !this.mediaVid.paused) this.mediaVid.pause();
@@ -82,7 +85,7 @@
       };
 
       this.el.addEventListener('mousedown', pause);
-      this.el.addEventListener('touchstart', pause, { passive: true });
+      this.el.addEventListener('touchstart', pause);
       this.el.addEventListener('mouseup', resume);
       this.el.addEventListener('mouseleave', resume);
       this.el.addEventListener('touchend', resume);
@@ -95,10 +98,20 @@
         });
       }
 
+      if (this.instagramBtn) {
+        this.instagramBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (this.currentInstagramUrl) {
+            window.open(this.currentInstagramUrl, '_blank', 'noopener,noreferrer');
+          }
+        });
+      }
+
+      // Свайпы
       this.el.addEventListener('touchstart', (e) => {
         this.touchStartY = e.touches[0].clientY;
         this.touchStartX = e.touches[0].clientX;
-      }, { passive: true });
+      });
 
       this.el.addEventListener('touchend', (e) => {
         const diffY = e.changedTouches[0].clientY - this.touchStartY;
@@ -108,7 +121,7 @@
         } else if (Math.abs(diffX) > this.swipeThreshold && Math.abs(diffY) < Math.abs(diffX)) {
           diffX < 0 ? this.next() : this.prev();
         }
-      }, { passive: true });
+      });
     }
 
     open(index) {
@@ -128,6 +141,7 @@
       this.stopTimer();
       if (this.mediaVid) { this.mediaVid.pause(); this.mediaVid.src = ''; }
       this.currentLink = '';
+      this.currentInstagramUrl = '';
     }
 
     show() {
@@ -143,6 +157,16 @@
       this.duration = story.type === 'video' ? 0 : (parseInt(story.duration, 10) || 5000);
       this.elapsed = 0;
       this.currentLink = story.link_url || '';
+      this.currentInstagramUrl = story.instagram_url || '';
+
+      if (this.instagramBtn) {
+        this.instagramBtn.classList.toggle('hidden', !this.currentInstagramUrl);
+        if (this.currentInstagramUrl) {
+          this.instagramBtn.href = this.currentInstagramUrl;
+        } else {
+          this.instagramBtn.removeAttribute('href');
+        }
+      }
 
       if (this.textEl) {
         this.textEl.textContent = story.text || '';
