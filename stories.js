@@ -13,6 +13,7 @@
       this.prevBtn = document.getElementById('storyPrev');
       this.nextBtn = document.getElementById('storyNext');
       this.closeBtn = document.getElementById('storyClose');
+      this.instagramBtn = document.getElementById('storyInstagramBtn');
       this.overlay = document.querySelector('.story-viewer__overlay');
       this.loader = document.querySelector('.story-viewer__loader');
 
