@@ -114,6 +114,43 @@
 }
 .story-viewer__close:hover { background: rgba(255,255,255,0.2); }
 
+/* Кнопка Instagram */
+.story-viewer__instagram-btn {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top) + 10px);
+  left: 12px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  text-decoration: none;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  backdrop-filter: blur(4px);
+  transition: background 0.2s, transform 0.2s;
+  white-space: nowrap;
+}
+.story-viewer__instagram-btn:hover {
+  background: rgba(255,255,255,0.25);
+  transform: scale(1.05);
+}
+.story-viewer__instagram-btn svg {
+  flex-shrink: 0;
+}
+@media (max-width: 480px) {
+  .story-viewer__instagram-btn span {
+    display: none;
+  }
+  .story-viewer__instagram-btn {
+    padding: 8px;
+    border-radius: 50%;
+  }
+}
+
 /* Подсказка свайпа */
 .story-viewer__swipe-hint {
   position: absolute; bottom: 8px; left: 0; right: 0; text-align: center;
