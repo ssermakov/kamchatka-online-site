@@ -29,9 +29,6 @@
       this.currentLink = '';
       this.currentInstagramUrl = '';
 
-      // Не ищем кнопку в конструкторе - она может быть еще не в DOM
-      this.instagramBtn = null;
-
       this.init();
     }
 
@@ -45,11 +42,6 @@
         return;
       }
       if (!Array.isArray(this.stories) || this.stories.length === 0) return;
-      
-      // Инициализируем кнопку Instagram - она должна быть в DOM к этому моменту
-      // Если кнопки нет, пробуем найти её при первом открытии сторис
-      this.instagramBtn = document.getElementById('storyInstagram');
-      console.log('DEBUG: instagramBtn найден?', !!this.instagramBtn);
       
       this.bindEvents();
     }
@@ -107,15 +99,15 @@
         });
       }
 
-      if (this.instagramBtn) {
-        this.instagramBtn.addEventListener('click', (e) => {
+      // Обработчик клика на кнопку Instagram - ищем кнопку в момент клика
+      this.el.addEventListener('click', (e) => {
+        const instaBtn = e.target.closest('#storyInstagram');
+        if (instaBtn && this.currentInstagramUrl) {
           e.stopPropagation();
-          // Не делаем preventDefault для ссылки с href
-          if (this.currentInstagramUrl) {
-            window.open(this.currentInstagramUrl, '_blank', 'noopener,noreferrer');
-          }
-        });
-      }
+          e.preventDefault();
+          window.open(this.currentInstagramUrl, '_blank', 'noopener,noreferrer');
+        }
+      });
 
       // Свайпы
       this.el.addEventListener('touchstart', (e) => {
@@ -154,9 +146,10 @@
       this.currentInstagramUrl = '';
       
       // Скрываем кнопку Instagram при закрытии
-      if (this.instagramBtn) {
-        this.instagramBtn.classList.add('hidden');
-        this.instagramBtn.removeAttribute('href');
+      const instagramBtn = document.getElementById('storyInstagram');
+      if (instagramBtn) {
+        instagramBtn.classList.add('hidden');
+        instagramBtn.removeAttribute('href');
       }
     }
 
@@ -166,10 +159,8 @@
       if (!story) return;
 
       // Проверяем наличие кнопки Instagram (на случай если она не была найдена в init)
-      if (!this.instagramBtn) {
-        this.instagramBtn = document.getElementById('storyInstagram');
-        console.log('DEBUG: instagramBtn найден в show()?', !!this.instagramBtn);
-      }
+      const instagramBtn = document.getElementById('storyInstagram');
+      console.log('DEBUG: instagramBtn найден в show()?', !!instagramBtn);
 
       if (this.loader) this.loader.classList.add('active');
 
@@ -182,19 +173,19 @@
       this.currentInstagramUrl = story.instagram_url || '';
 
       // Обновляем видимость кнопки Instagram для текущей сторис
-      if (this.instagramBtn) {
+      if (instagramBtn) {
         const hasUrl = !!this.currentInstagramUrl && this.currentInstagramUrl.trim() !== '';
         console.log('DEBUG Instagram:', { 
           currentInstagramUrl: this.currentInstagramUrl, 
           hasUrl: hasUrl, 
-          btnExists: !!this.instagramBtn 
+          btnExists: !!instagramBtn 
         });
         if (hasUrl) {
-          this.instagramBtn.classList.remove('hidden');
-          this.instagramBtn.href = this.currentInstagramUrl;
+          instagramBtn.classList.remove('hidden');
+          instagramBtn.href = this.currentInstagramUrl;
         } else {
-          this.instagramBtn.classList.add('hidden');
-          this.instagramBtn.removeAttribute('href');
+          instagramBtn.classList.add('hidden');
+          instagramBtn.removeAttribute('href');
         }
       }
 
