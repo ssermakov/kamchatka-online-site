@@ -4,8 +4,7 @@
   class TourStoryViewer {
     constructor() {
       console.group('[StoryViewer] 🚀 Инициализация');
-
-      // Проверка наличия элемента viewer в DOM
+      
       this.el = document.getElementById('storyViewer');
       if (!this.el) {
         console.error('❌ ОШИБКА: Элемент #storyViewer не найден в DOM');
@@ -14,7 +13,6 @@
         console.log('   2. JS загружается до рендеринга HTML');
         console.log('   3. Кэш MODX требует очистки');
 
-        // Попытка найти любые элементы story-viewer
         const allViewers = document.querySelectorAll('.story-viewer');
         console.log('🔍 Найдено элементов .story-viewer:', allViewers.length);
         allViewers.forEach((v, i) => {
@@ -25,53 +23,32 @@
         return;
       }
       console.log('✅ #storyViewer найден');
-      console.log('📄 HTML содержимое viewer (первые 500 символов):', this.el.innerHTML.substring(0, 500));
 
-      // Инициализация элементов с повторной проверкой
+      // Инициализация элементов
       this.progressEl = document.getElementById('storyProgress');
-      this.mediaImg = document.getElementById('storyMedia');
-      this.mediaVid = document.getElementById('storyVideo');
-      this.textEl = document.getElementById('storyText');
-      this.prevBtn = document.getElementById('storyPrev');
-      this.nextBtn = document.getElementById('storyNext');
-      this.closeBtn = document.getElementById('storyClose');
+      this.mediaImg   = document.getElementById('storyMedia');
+      this.mediaVid   = document.getElementById('storyVideo');
+      this.textEl     = document.getElementById('storyText');
+      this.prevBtn    = document.getElementById('storyPrev');
+      this.nextBtn    = document.getElementById('storyNext');
+      this.closeBtn   = document.getElementById('storyClose');
       this.instagramBtn = document.getElementById('storyInstagramBtn');
-      this.overlay = document.querySelector('.story-viewer__overlay');
-      this.loader = document.querySelector('.story-viewer__loader');
+      this.overlay    = document.querySelector('.story-viewer__overlay');
+      this.loader     = document.querySelector('.story-viewer__loader');
 
-      // Логирование инициализации элементов
+      // Логирование элементов
       console.log('🔍 Проверка элементов viewer:', {
         instagramBtn: this.instagramBtn ? '✅ найден' : '❌ НЕ НАЙДЕН',
-        instagramBtnHTML: this.instagramBtn ? this.instagramBtn.outerHTML.substring(0, 200) : null,
         loader: this.loader ? '✅ найден' : '❌ НЕ НАЙДЕН',
-        progressEl: this.progressEl ? '✅ найден' : '❌ НЕ НАЙДЕН',
-        mediaImg: this.mediaImg ? '✅ найден' : '❌ НЕ НАЙДЕН',
-        mediaVid: this.mediaVid ? '✅ найден' : '❌ НЕ НАЙДЕН',
-        textEl: this.textEl ? '✅ найден' : '❌ НЕ НАЙДЕН',
-        prevBtn: this.prevBtn ? '✅ найден' : '❌ НЕ НАЙДЕН',
-        nextBtn: this.nextBtn ? '✅ найден' : '❌ НЕ НАЙДЕН',
-        closeBtn: this.closeBtn ? '✅ найден' : '❌ НЕ НАЙДЕН',
-        overlay: this.overlay ? '✅ найден' : '❌ НЕ НАЙДЕН'
+        progressEl: this.progressEl ? '✅ найден' : '❌ НЕ НАЙДЕН'
       });
 
-      // Если кнопка не найдена, пробуем альтернативные селекторы
+      // Фоллбэк для Instagram кнопки
       if (!this.instagramBtn) {
         console.log('🔄 Попытка найти кнопку альтернативными методами...');
-        this.instagramBtn = this.el.querySelector('#storyInstagramBtn');
-        console.log('   Через querySelector("#storyInstagramBtn"):', this.instagramBtn ? '✅ найден' : '❌ НЕ НАЙДЕН');
-
-        if (!this.instagramBtn) {
-          this.instagramBtn = this.el.querySelector('.story-viewer__instagram-btn');
-          console.log('   Через querySelector(".story-viewer__instagram-btn"):', this.instagramBtn ? '✅ найден' : '❌ НЕ НАЙДЕН');
-        }
-
-        if (!this.instagramBtn) {
-          const allLinks = this.el.querySelectorAll('a');
-          console.log('   Найдено <a> элементов внутри viewer:', allLinks.length);
-          allLinks.forEach((a, i) => {
-            console.log(`      [${i}] href="${a.href}", class="${a.className}", id="${a.id}"`);
-          });
-        }
+        this.instagramBtn = this.el.querySelector('#storyInstagramBtn') || 
+                            this.el.querySelector('.story-viewer__instagram-btn');
+        console.log('   Альтернативный поиск:', this.instagramBtn ? '✅ найден' : '❌ НЕ НАЙДЕН');
       }
 
       // Состояние просмотра
@@ -87,7 +64,11 @@
       this.swipeThreshold = 50;
       this.currentLink = '';
 
-      // Привязка событий
+      // 🔑 Yandex.Metrica настройки
+      this.ymCounterId = 12345678; // ⚠️ ЗАМЕНИТЕ на номер вашего счётчика Метрики
+      this.viewedStories = new Set();
+      this.currentBlock = '';
+
       this.bindEvents();
       console.log('🎯 Обработчики событий привязаны');
 
@@ -123,12 +104,11 @@
         console.log('🔢 data-index:', idx);
 
         if (block && !isNaN(idx)) {
-          console.log('✅ Данные корректны. Вызов open()...');
           this.open(block, idx);
         } else if (!isNaN(idx)) {
           this.open(idx);
         } else {
-          console.warn('⚠️ ОШИБКА: У кликнутого элемента отсутствуют data-block или data-index');
+          console.warn('⚠️ У кликнутого элемента отсутствуют data-block или data-index');
         }
         console.groupEnd();
       }, true);
@@ -139,17 +119,12 @@
       if (this.closeBtn) this.closeBtn.addEventListener('click', () => this.close());
       if (this.overlay) this.overlay.addEventListener('click', () => this.close());
 
-      // Кнопка Instagram - открываем ссылку без закрытия viewer
+      // Кнопка Instagram
       if (this.instagramBtn) {
-        console.log('✅ Обработчик клика на Instagram button установлен');
         this.instagramBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           console.log('🔵 Клик по кнопке Instagram зафиксирован');
-          console.log('🔗 href:', this.instagramBtn.href);
-          // Ссылка откроется в новой вкладке благодаря target="_blank" в HTML
         });
-      } else {
-        console.error('❌ ОШИБКА: this.instagramBtn НЕ найден при bindEvents()');
       }
 
       // Клавиатура
@@ -211,6 +186,7 @@
       console.group('[StoryViewer] 🔓 open()');
 
       if (typeof blockOrIndex === 'number') {
+        this.currentBlock = ''; // Сброс блока при прямом вызове по индексу
         this.currentIndex = blockOrIndex;
         this.show();
         console.groupEnd();
@@ -218,21 +194,19 @@
       }
 
       const [block, idx] = [blockOrIndex, index];
+      this.currentBlock = block || ''; // 🔑 Сохраняем текущий блок для метрики
+
       console.log('📥 Запрашиваемый блок:', block);
       console.log('📥 Запрашиваемый индекс:', idx);
 
       const jsonId = 'tour-stories-data-' + block;
-      console.log('🔍 Поиск элемента с ID:', jsonId);
-
       const jsonEl = document.getElementById(jsonId);
       if (!jsonEl) {
-        console.error('❌ ОШИБКА: Скрипт #' + jsonId + ' НЕ НАЙДЕН в DOM!');
+        console.error('❌ Скрипт #' + jsonId + ' НЕ НАЙДЕН в DOM!');
         this.diagnoseMissingJson();
         console.groupEnd();
         return;
       }
-
-      console.log('✅ Элемент найден:', jsonEl);
 
       try {
         this.stories = JSON.parse(jsonEl.textContent);
@@ -247,9 +221,8 @@
       this.el.classList.add('open');
       this.el.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
-      console.log('🖼️ Viewer открыт');
+      
       console.groupEnd();
-
       this.show();
     }
 
@@ -267,69 +240,14 @@
     show() {
       console.group('[StoryViewer] 🎬 show()');
       this.stopTimer();
+      
       const story = this.stories[this.currentIndex];
       if (!story) {
-        console.error('❌ История с индексом', this.currentIndex, 'отсутствует в массиве');
+        console.error('❌ История с индексом', this.currentIndex, 'отсутствует');
         console.groupEnd();
         this.close();
         return;
       }
-
-      console.log('📊 Текущая история:', story);
-      console.log('🔗 Ссылка для клика:', story.link_url || 'Нет');
-
-      // Детальная проверка кнопки Instagram при show()
-      console.group('[StoryViewer] 🔍 Проверка видимости Instagram кнопки');
-
-      // Проверяем наличие элемента в DOM напрямую
-      const directCheck = document.getElementById('storyInstagramBtn');
-      console.log('🔎 Прямая проверка document.getElementById("storyInstagramBtn"):', directCheck ? '✅ найден' : '❌ НЕ НАЙДЕН');
-
-      // Проверяем через querySelector внутри el
-      const queryCheck = this.el ? this.el.querySelector('#storyInstagramBtn') : null;
-      console.log('🔎 Проверка this.el.querySelector("#storyInstagramBtn"):', queryCheck ? '✅ найден' : '❌ НЕ НАЙДЕН');
-
-      // Проверяем через класс
-      const classCheck = this.el ? this.el.querySelector('.story-viewer__instagram-btn') : null;
-      console.log('🔎 Проверка this.el.querySelector(".story-viewer__instagram-btn"):', classCheck ? '✅ найден' : '❌ НЕ НАЙДЕН');
-
-      // Проверяем все <a> внутри viewer
-      const allLinks = this.el ? this.el.querySelectorAll('a') : [];
-      console.log('🔎 Все <a> элементы внутри viewer:', allLinks.length);
-      allLinks.forEach((link, idx) => {
-        console.log(`   [${idx}] id="${link.id}", class="${link.className}", href="${link.href}"`);
-      });
-
-      // Проверяем this.instagramBtn
-      if (this.instagramBtn) {
-        const computedStyle = window.getComputedStyle(this.instagramBtn);
-        console.log('✅ this.instagramBtn существует:', this.instagramBtn);
-        console.log('   display:', computedStyle.display);
-        console.log('   visibility:', computedStyle.visibility);
-        console.log('   opacity:', computedStyle.opacity);
-        console.log('   z-index:', computedStyle.zIndex);
-        console.log('   top:', computedStyle.top);
-        console.log('   left:', computedStyle.left);
-        console.log('   position:', computedStyle.position);
-
-        // Проверка родительского элемента
-        console.log('   Родительский элемент:', this.instagramBtn.parentElement);
-        console.log('   storyContent существует:', !!document.getElementById('storyContent'));
-
-        // Проверка на скрытие через CSS
-        console.log('   offsetWidth:', this.instagramBtn.offsetWidth);
-        console.log('   offsetHeight:', this.instagramBtn.offsetHeight);
-        console.log('   clientRect:', this.instagramBtn.getBoundingClientRect());
-      } else {
-        console.error('❌ this.instagramBtn НЕ существует в show()');
-        console.log('💡 Возможные причины:');
-        console.log('   1. Элемент был удалён из DOM');
-        console.log('   2. Шаблон tpl.stories.viewer.txt не содержит кнопку');
-        console.log('   3. Конфликт ID элементов');
-      }
-      console.groupEnd();
-
-      console.groupEnd();
 
       if (this.loader) this.loader.classList.add('active');
 
@@ -344,16 +262,6 @@
         this.textEl.textContent = story.text || '';
         this.textEl.classList.toggle('visible', !!story.text);
         this.textEl.classList.toggle('has-link', !!this.currentLink);
-      }
-
-      // Проверка видимости кнопки Instagram при показе истории
-      if (this.instagramBtn) {
-        console.log('[StoryViewer] Instagram button visibility check:', {
-          display: window.getComputedStyle(this.instagramBtn).display,
-          visibility: window.getComputedStyle(this.instagramBtn).visibility,
-          opacity: window.getComputedStyle(this.instagramBtn).opacity,
-          zIndex: window.getComputedStyle(this.instagramBtn).zIndex
-        });
       }
 
       if (story.type === 'video' && this.mediaVid) {
@@ -400,22 +308,11 @@
 
       this.updateProgressUI();
       this.preloadNext();
+      
+      // 🔑 Отправка цели в Яндекс.Метрику
+      this.trackView(story);
 
-      // Финальная проверка видимости после рендеринга
-      setTimeout(() => {
-        if (this.instagramBtn) {
-          const finalStyle = window.getComputedStyle(this.instagramBtn);
-          console.group('[StoryViewer] ✅ Финальная проверка видимости (через 100ms)');
-          console.log('display:', finalStyle.display);
-          console.log('visibility:', finalStyle.visibility);
-          console.log('opacity:', finalStyle.opacity);
-          console.log('offsetWidth:', this.instagramBtn.offsetWidth);
-          console.log('offsetHeight:', this.instagramBtn.offsetHeight);
-          console.groupEnd();
-        } else {
-          console.error('❌ Кнопка Instagram отсутствует после рендеринга (100ms)');
-        }
-      }, 100);
+      console.groupEnd();
     }
 
     next() {
@@ -471,6 +368,7 @@
       const nextUrl = this.stories[nextIdx].url;
       if (!nextUrl) return;
       const fixedUrl = (nextUrl.indexOf('http') === 0 || nextUrl.indexOf('/') === 0) ? nextUrl : '/' + nextUrl;
+      
       if (this.stories[nextIdx].type === 'image') {
         const img = new Image(); img.src = fixedUrl;
       } else {
@@ -496,13 +394,38 @@
         allScripts.forEach(s => {
           try {
             const data = JSON.parse(s.textContent);
-            console.log(`📜 ID: ${s.id} | Записей: ${data.length} | Первый элемент:`, data[0]);
+            console.log(`📜 ID: ${s.id} | Записей: ${data.length}`);
           } catch {
             console.warn(`❌ Сломанный JSON в #${s.id}`);
           }
         });
       }
       console.groupEnd();
+    }
+
+    /**
+     * 🔑 Отправка цели в Яндекс.Метрику
+     * Защищена от дубликатов (Set) и передаёт параметры для сегментации
+     */
+    trackView(story) {
+      const key = `${this.currentBlock || 'global'}:${this.currentIndex}`;
+      
+      // Дедупликация: цель сработает только при первом показе этой сторис за сессию
+      if (this.viewedStories.has(key)) return;
+      this.viewedStories.add(key);
+
+      if (typeof ym === 'function') {
+        ym(this.ymCounterId, 'reachGoal', 'story_viewed', {
+          block: this.currentBlock,
+          index: this.currentIndex,
+          type: story.type,
+          has_link: !!story.link_url,
+          duration_ms: this.duration
+        });
+        console.log('[StoryViewer] 📊 Yandex.Metrica: story_viewed отправлена', { key });
+      } else {
+        console.warn('[StoryViewer] ⚠️ ym() не найден. Убедитесь, что код Метрики подключён на странице.');
+      }
     }
   }
 
