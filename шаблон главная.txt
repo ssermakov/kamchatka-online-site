@@ -414,6 +414,7 @@
         /* Секция B2B */
         .b2b {
             background-color: #333939;
+            padding-top: 20px;
         }
         
         .b2b-header {
@@ -442,7 +443,8 @@
         }
         
         .b2b-section {
-            margin-bottom: 25px;
+            margin-bottom: 0px;
+
         }
         
         .b2b-section h3 {
