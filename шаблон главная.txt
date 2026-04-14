@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     [[$head]]
     <style>
         * {
@@ -8,6 +9,13 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        html, body {
+            overflow-x: hidden;
+            width: 100%;
+            max-width: 100vw;
+            position: relative;
         }
         
         body {
@@ -21,11 +29,18 @@
             color: inherit;
         }
         
+        img, video, iframe {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+        
         .container {
             width: 100%;
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px;
+            box-sizing: border-box;
         }
         
         .btn {
@@ -40,6 +55,7 @@
             transition: all 0.3s ease;
             border: none;
             cursor: pointer;
+            max-width: 100%;
         }
         
         .btn:hover {
@@ -54,19 +70,25 @@
             padding: 20px 0;
             position: fixed;
             width: 100%;
+            max-width: 100vw;
             z-index: 1000;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            left: 0;
+            right: 0;
         }
         
         .header-container {
             display: flex;
             justify-content: center;
+            overflow-x: auto;
         }
         
         .nav-menu {
             display: flex;
             list-style: none;
             gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
         
         .nav-menu li a {
@@ -74,6 +96,7 @@
             font-weight: 600;
             position: relative;
             padding: 5px 0;
+            white-space: nowrap;
         }
         
         .nav-menu li a::after {
@@ -101,6 +124,8 @@
             text-align: center;
             padding-top: 60px;
             overflow: hidden;
+            width: 100%;
+            max-width: 100vw;
         }
         
         .hero-video {
@@ -127,6 +152,8 @@
             max-width: 800px;
             position: relative;
             z-index: 1;
+            padding: 0 20px;
+            width: 100%;
         }
         
         .hero-logo {
@@ -139,23 +166,30 @@
         .hero-logo img {
             max-width: 400px;
             width: 100%;
+            margin: 0 auto;
         }
         
         .hero h1 {
             font-size: 48px;
             margin-bottom: 15px;
             text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
+            padding: 0 10px;
         }
         
         .hero p {
             font-size: 24px;
             margin-bottom: 30px;
             opacity: 0.9;
+            padding: 0 10px;
         }
         
         /* Секции */
         section {
             padding: 80px 0;
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: hidden;
+            position: relative;
         }
         
         .section-title {
@@ -163,6 +197,7 @@
             font-size: 36px;
             margin-bottom: 50px;
             position: relative;
+            padding: 0 20px;
         }
         
         .section-title::after {
@@ -264,6 +299,7 @@
             display: block;
             max-width: 600px;
             width: 100%;
+            margin: 0 auto;
         }
         
         /* Секция Направления */
@@ -350,6 +386,7 @@
             display: flex;
             gap: 15px;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
         
         .form-group {
@@ -423,6 +460,7 @@
             justify-content: center;
             gap: 15px;
             margin-bottom: 30px;
+            flex-wrap: wrap;
         }
         
         .b2b-header h2 {
@@ -436,6 +474,7 @@
 
         .b2b-logo img {
             width: 200px;
+            max-width: 100%;
         }
         
         .b2b-content {
@@ -457,6 +496,9 @@
         footer {
             background-color: #1a1d1d;
             padding: 40px 0 20px;
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: hidden;
         }
         
         .footer-container {
@@ -522,6 +564,7 @@
             border-top: 1px solid #333;
             opacity: 0.7;
             font-size: 14px;
+            padding: 20px 20px 0;
         }
         
         /* Виджет соцсетей */
@@ -704,6 +747,7 @@
             
             .card {
                 width: 100%;
+                max-width: 100%;
             }
             
             .gallery-container {
@@ -732,10 +776,16 @@
                 top: auto !important;
                 transform: unset !important;
                 justify-content: center;
+                width: 100%;
+                padding: 0 10px;
             }
             
             .social-widget-container {
                 flex-direction: row;
+                width: 100%;
+                max-width: 100%;
+                margin: 0 10px;
+                justify-content: center;
             }
             
             .cruises {
@@ -745,6 +795,7 @@
             .cruises-gallery {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 18px;
+                padding: 0 10px;
             }
             
             .cruise-image {
@@ -763,6 +814,19 @@
             .cruise-info p {
                 font-size: 14px;
             }
+            
+            .section-title {
+                font-size: 28px;
+            }
+            
+            .b2b-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .b2b-logo {
+                margin-left: 0;
+            }
         }
         
         @media (max-width: 576px) {
@@ -773,15 +837,21 @@
             .selection-container {
                 padding: 20px;
             }
+            
+            .cruises-gallery {
+                grid-template-columns: 1fr;
+                padding: 0 15px;
+            }
         }
         
         @media (max-width: 480px) {
             .cruises-gallery {
                 grid-template-columns: 1fr;
                 gap: 20px;
-                max-width: 350px;
+                max-width: 100%;
                 margin-left: auto;
                 margin-right: auto;
+                padding: 0 10px;
             }
             
             .cruise-image {
@@ -795,11 +865,27 @@
             .cruise-info p {
                 font-size: 15px;
             }
+            
+            .hero-logo {
+                font-size: 60px;
+            }
+            
+            .hero h1 {
+                font-size: 28px;
+            }
+            
+            .hero p {
+                font-size: 18px;
+            }
         }
 
         @media (max-width: 360px) {
             .cruise-image {
                 height: 190px;
+            }
+            
+            .container {
+                padding: 0 15px;
             }
         }
     </style>
@@ -822,7 +908,7 @@
         
         <div class="hero-content">
             <div class="hero-logo">
-                <img src="logo.png">
+                <img src="logo.png" alt="Logo">
             </div>
             <h1>[[*hero-title]]</h1>
             <p>[[*hero-descr]]</p>
@@ -852,7 +938,7 @@
                 
             </div>
             
-            <div class="section-logo"><img src="logo.png"></div>
+            <div class="section-logo"><img src="logo.png" alt="Logo"></div>
         </div>
     </section>
     
@@ -862,7 +948,7 @@
             <h2 class="section-title">Направления</h2>
             <!-- Направления -->
 <section id="stories-directions" class="directions-stories">
-  [[getTourStories? &block=`directions` &tvName=`tour_stories` &tplList=`tpl.stories.list` &tplItem=`tpl.stories.item`]]
+  [[getTourStories? &block=`napravleniya` &tvName=`tour_stories` &tplList=`tpl.stories.list` &tplItem=`tpl.stories.item`]]
 </section>
             
             <div class="directions-container">
@@ -935,7 +1021,7 @@
             </div>
             
             <div class="section-logo">
-                <img src="logo.png">
+                <img src="logo.png" alt="Logo">
             </div>
         </div>
     </section>
@@ -987,7 +1073,7 @@
         <div class="container">
             <div class="b2b-header">
                 <h2>Ключевые решения B2B</h2>
-                <div class="b2b-logo"><img src="logo.png"></div>
+                <div class="b2b-logo"><img src="logo.png" alt="Logo"></div>
             </div>
             
             <div class="b2b-content">
