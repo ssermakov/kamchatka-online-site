@@ -1,74 +1,120 @@
 <?php
 /**
  * getTourStories
- * @param tvName string Имя TV (по умолчанию tour_stories)
- * @param tplList string Чанк обертки
- * @param tplItem string Чанк одного превью
+ * @param block      string  Обязательный: kamchatka|directions|sri-lanka|turkey|china (если используется фильтрация)
+ * @param resourceId int     ID ресурса для TV (по умолчанию текущий)
+ * @param tvName     string  Имя TV (по умолчанию tour_stories)
+ * @param tplList    string  Чанк обёртки
+ * @param tplItem    string  Чанк превью
  */
-$tvName  = $modx->getOption('tvName', $scriptProperties, 'tour_stories');
-$tplList = $modx->getOption('tplList', $scriptProperties, 'tpl.stories.list');
-$tplItem = $modx->getOption('tplItem', $scriptProperties, 'tpl.stories.item');
 
-$tvValue = $modx->resource->getTVValue($tvName);
-$stories = $modx->fromJSON($tvValue);
+// 1. Считываем параметры
+$block      = $modx->getOption('block', $scriptProperties, '', true);
+$resourceId = $modx->getOption('resourceId', $scriptProperties, $modx->resource->id, true);
+$tvName     = $modx->getOption('tvName', $scriptProperties, 'tour_stories', true);
+$tplList    = $modx->getOption('tplList', $scriptProperties, 'tpl.stories.list', true);
+$tplItem    = $modx->getOption('tplItem', $scriptProperties, 'tpl.stories.item', true);
 
-if (empty($stories) || !is_array($stories)) {
-    return '';
+// 🔑 АВТО-ОПРЕДЕЛЕНИЕ БЛОКА ПО PAGETITLE (если &block не передан)
+if (empty($block)) {
+    $pageTitle = $modx->resource->get('pagetitle');
+    $titleToBlock = array(
+        'Камчатка'        => 'kamchatka',
+        'Направления'     => 'napravleniya',
+        // При необходимости добавьте другие соответствия
+    );
+    if (isset($titleToBlock[$pageTitle])) {
+        $block = $titleToBlock[$pageTitle];
+    }
 }
 
-$items    = array();
-$dataJSON = array();
+// Логирование для отладки
+$modx->log(modX::LOG_LEVEL_ERROR, '[DEBUG getTourStories] Блок из вызова: ' . ($block ?: 'EMPTY'));
 
-foreach ($stories as $i => $story) {
-    $type  = isset($story['type']) ? trim($story['type']) : 'image';
-    $url   = '';
-    $thumb = '';
+// 2. Получаем TV с нужного ресурса
+$target = $modx->getObject('modResource', (int)$resourceId);
+$raw    = $target ? $target->getTVValue($tvName) : '';
+$data   = $modx->fromJSON($raw);
+if (!is_array($data)) return '';
 
-    if ($type === 'video') {
-        $url   = isset($story['video']) ? trim($story['video']) : '';
-        $thumb = isset($story['thumb']) ? trim($story['thumb']) : '';
-    } else {
-        $url   = isset($story['thumb']) ? trim($story['thumb']) : '';
-        $thumb = $url;
+// 3. ФИЛЬТРАЦИЯ по story_block (если блок указан)
+if (!empty($block)) {
+    $filtered = array();
+    foreach ($data as $s) {
+        if (isset($s['story_block']) && $s['story_block'] === $block) {
+            $filtered[] = $s;
+        }
     }
+    if (empty($filtered)) return '';
+    $data = array_values($filtered); // сброс индексов
+}
 
+// 4. Обработка данных
+$items   = array();
+$jsonArr = array();
+
+foreach ($data as $i => $story) {
+    $type = isset($story['type']) ? trim($story['type']) : 'image';
+    $type = in_array($type, array('image', 'video'), true) ? $type : 'image';
+
+    $url   = ($type === 'video') ? (isset($story['video']) ? trim($story['video']) : '') : (isset($story['thumb']) ? trim($story['thumb']) : '');
+    $thumb = isset($story['thumb']) ? trim($story['thumb']) : '';
     if (empty($url)) continue;
 
     // Нормализация путей
     if (!preg_match('#^https?://#i', $url))  $url  = '/' . ltrim($url, '/');
     if (!empty($thumb) && !preg_match('#^https?://#i', $thumb)) $thumb = '/' . ltrim($thumb, '/');
 
-    // Обработка ссылки (новое поле)
+    // Обработка ссылки
     $linkUrl = isset($story['link_url']) ? trim($story['link_url']) : '';
     if (!empty($linkUrl) && !preg_match('#^https?://|^/#i', $linkUrl)) {
         $linkUrl = '/' . ltrim($linkUrl, '/');
     }
 
+    // Длительность
     $duration = isset($story['duration']) ? (int)$story['duration'] : 6000;
     if ($duration < 2000) $duration = 2000;
 
-    $dataJSON[] = array(
+    // Текст
+    $text = isset($story['text']) ? htmlspecialchars($story['text'], ENT_QUOTES, 'UTF-8') : '';
+
+    // Данные для JSON
+    $jsonArr[] = array(
         'index'    => (int)$i,
         'type'     => $type,
         'url'      => $url,
-        'text'     => htmlspecialchars(isset($story['text']) ? $story['text'] : '', ENT_QUOTES, 'UTF-8'),
+        'text'     => $text,
         'link_url' => htmlspecialchars($linkUrl, ENT_QUOTES, 'UTF-8'),
-        'duration' => $duration
+        'duration' => (int)$duration
     );
 
+    // Данные для чанка превью
     $items[] = $modx->getChunk($tplItem, array(
         'index' => (int)$i,
         'thumb' => htmlspecialchars($thumb, ENT_QUOTES, 'UTF-8'),
-        'alt'   => htmlspecialchars(isset($story['text']) ? $story['text'] : 'История ' . ($i + 1), ENT_QUOTES, 'UTF-8')
+        'alt'   => ($text !== '') ? $text : 'История ' . ($i + 1),
+        'block' => !empty($block) ? $block : '' // ⚠️ Обязательно для JS, если используется фильтрация
     ));
 }
 
 if (empty($items)) return '';
 
-$jsonFlags = JSON_UNESCAPED_UNICODE;
-if (defined('JSON_UNESCAPED_SLASHES')) {
-    $jsonFlags |= JSON_UNESCAPED_SLASHES;
+// 5. Генерация JSON
+$flags = JSON_UNESCAPED_UNICODE;
+if (defined('JSON_UNESCAPED_SLASHES')) $flags |= JSON_UNESCAPED_SLASHES;
+
+if (!empty($block)) {
+    // Изолированный JSON с уникальным ID
+    $safeBlock = preg_replace('#[^a-z0-9\-]#i', '', $block);
+    $jsonScript = '<script type="application/json" id="tour-stories-data-' . $safeBlock . '">'
+                . json_encode($jsonArr, $flags) . '</script>';
+} else {
+    // Общий JSON
+    $jsonScript = '<script type="application/json" id="tour-stories-data">'
+                . json_encode($jsonArr, $flags) . '</script>';
 }
 
-$jsonData = '<script type="application/json" id="tour-stories-data">' . json_encode($dataJSON, $jsonFlags) . '</script>';
-return $jsonData . $modx->getChunk($tplList, array('items' => implode('', $items)));
+return $jsonScript . $modx->getChunk($tplList, array(
+    'items' => implode('', $items),
+    'block' => !empty($block) ? $block : ''
+));
