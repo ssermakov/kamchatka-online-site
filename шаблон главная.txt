@@ -832,11 +832,11 @@
     <section id="kamchatka" class="kamchatka">
         <div class="container">
             <h2 class="section-title">Камчатка</h2>
-                                    [[!getTourStories? 
-                          &tvName=`tour_stories` 
-                          &tplList=`tpl.stories.list` 
-                          &tplItem=`tpl.stories.item`
-                        ]]
+                                
+                        <!-- Камчатка -->
+<section id="stories-kamchatka" class="kamchatka-stories">
+  [[getTourStories? &block=`kamchatka` &tvName=`tour_stories` &tplList=`tpl.stories.list` &tplItem=`tpl.stories.item`]]
+</section>
             
             <div class="cards-container">
                 
@@ -858,6 +858,10 @@
     <section id="directions" class="directions">
         <div class="container">
             <h2 class="section-title">Направления</h2>
+            <!-- Направления -->
+<section id="stories-directions" class="directions-stories">
+  [[getTourStories? &block=`directions` &tvName=`tour_stories` &tplList=`tpl.stories.list` &tplItem=`tpl.stories.item`]]
+</section>
             
             <div class="directions-container">
                 
