@@ -1,33 +1,5 @@
-```
-# Dependencies
-node_modules/
+(stories.js is a source file, so no need to add anything to .gitignore)
 
-# Logs and temp files
-*.log
-*.tmp
+```gitignore
 
-# Environment
-.env
-.env.local
-*.env.*
-
-# Editors
-.vscode/
-.idea/
-
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Build outputs
-dist/
-build/
-*.min.js
-*.bundle.js
-
-# OS generated files
-.DS_Store
-Thumbs.db
 ```

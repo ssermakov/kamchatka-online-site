@@ -88,6 +88,14 @@
       if (this.nextBtn) this.nextBtn.addEventListener('click', (e) => { e.stopPropagation(); this.next(); });
       if (this.closeBtn) this.closeBtn.addEventListener('click', () => this.close());
       if (this.overlay) this.overlay.addEventListener('click', () => this.close());
+      
+      // Кнопка Instagram - открываем ссылку без закрытия viewer
+      if (this.instagramBtn) {
+        this.instagramBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          // Ссылка откроется в новой вкладке благодаря target="_blank" в HTML
+        });
+      }
 
       // Клавиатура
       document.addEventListener('keydown', (e) => {
