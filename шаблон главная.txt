@@ -1082,24 +1082,6 @@
         "priceRange": ""
     }
     </script>
-            <div class="story-viewer" id="storyViewer" aria-hidden="true">
-          <div class="story-viewer__overlay"></div>
-          <div class="story-viewer__progress" id="storyProgress">
-            <div class="story-viewer__progress-bar"></div>
-          </div>
-          
-          <div class="story-viewer__content">
-              <div class="story-viewer__loader"></div>
-              
-            <img id="storyMedia" class="story-viewer__media" alt="">
-            <video id="storyVideo" class="story-viewer__media" muted playsinline></video>
-            
-            <div class="story-viewer__text" id="storyText"></div>
-            <button class="story-viewer__nav story-viewer__nav--prev" id="storyPrev" aria-label="Предыдущая">‹</button>
-            <button class="story-viewer__nav story-viewer__nav--next" id="storyNext" aria-label="Следующая">›</button>
-            <button class="story-viewer__close" id="storyClose" aria-label="Закрыть">×</button>
-            <div class="story-viewer__swipe-hint">Свайп вниз для закрытия</div>
-          </div>
-        </div>
+[[$tpl.stories.viewer]]
 </body>
 </html>
