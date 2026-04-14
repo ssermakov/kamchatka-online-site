@@ -1,28 +1,31 @@
 🔹 Название TV (tour_stories): tour_stories
 🔹 Заголовок (Сторис тура): Сторис тура
 🔹 Тип ввода (migx): migx
-🔹 Параметры ввода (input options / default value / validation): Вкладки формы:
+🔹 Параметры ввода (input options / default value / validation): 
+
+Вкладки формы:
 [
   {
     "caption": "Сторис",
     "fields": [
+      {"field": "story_block", "caption": "Блок", "inputTVtype": "listbox", "inputOptionValues": "Камчатка==kamchatka||Направления==directions||Шри-Ланка==sri-lanka||Турция==turkey||Китай==china", "default": "directions", "description": "Выберите блок, к которому относится история"},
       {"field": "type", "caption": "Тип", "inputTVtype": "listbox", "inputOptionValues": "Изображение==image||Видео==video", "default": "image"},
       {"field": "thumb", "caption": "Превью / Постер", "inputTVtype": "image"},
       {"field": "video", "caption": "Видео MP4", "inputTVtype": "file"},
       {"field": "text", "caption": "Текст поверх", "inputTVtype": "textarea"},
-      {"field": "link_url", "caption": "Ссылка (URL)", "inputTVtype": "text", "description": "Вставьте полный URL или путь от корня. Оставьте пустым, если ссылка не нужна."},
-      {"field": "duration", "caption": "Время показа (мс)", "inputTVtype": "number", "default": "6000"}
+      {"field": "link_url", "caption": "Ссылка (URL)", "inputTVtype": "text", "description": "Вставьте полный URL или путь от корня."},
+      {"field": "duration", "caption": "Время (мс)", "inputTVtype": "number", "default": "6000"}
     ]
   }
 ]
 Разметка колонок:
 [
+  {"header": "Блок", "dataIndex": "story_block", "width": 80, "renderer": "this.renderBlock"},
   {"header": "Тип", "dataIndex": "type", "width": 50},
-  {"header": "Превью", "dataIndex": "thumb", "width": 100},
-  {"header": "Видео", "dataIndex": "video", "width": 100},
+  {"header": "Превью", "dataIndex": "thumb", "width": 80, "renderer": "this.renderImage"},
   {"header": "Текст", "dataIndex": "text", "width": 150},
-  {"header": "Ссылка", "dataIndex": "link_url", "width": 150},
-  {"header": "Время", "dataIndex": "duration", "width": 70}
+  {"header": "Ссылка", "dataIndex": "link_url", "width": 120},
+  {"header": "Время", "dataIndex": "duration", "width": 60}
 ]
 
 🔹 Параметры вывода (output type / render / default output): по умолчанию
