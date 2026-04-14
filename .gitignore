@@ -1,10 +1,8 @@
 ```
-# Dependencies
-node_modules/
-
 # Logs and temp files
 *.log
 *.tmp
+*.swp
 
 # Environment
 .env
@@ -15,19 +13,38 @@ node_modules/
 .vscode/
 .idea/
 
-# Python
+# Dependencies
+node_modules/
+.venv/
+venv/
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Build outputs
+.mypy_cache/
+.pytest_cache/
 dist/
 build/
-*.min.js
-*.bundle.js
+target/
+.gradle/
 
-# OS generated files
+# Compiled files
+*.pyc
+*.class
+*.o
+*.exe
+*.dll
+*.so
+*.a
+*.obj
+*.out
+
+# System files
 .DS_Store
 Thumbs.db
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Original rules preserved
+*.log
 ```

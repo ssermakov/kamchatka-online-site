@@ -4,15 +4,30 @@
   class TourStoryViewer {
     constructor() {
       console.group('[StoryViewer] 🚀 Инициализация');
+      
+      // Проверка наличия элемента viewer в DOM
       this.el = document.getElementById('storyViewer');
       if (!this.el) {
         console.error('❌ ОШИБКА: Элемент #storyViewer не найден в DOM');
+        console.log('💡 Возможные причины:');
+        console.log('   1. Шаблон tpl.stories.viewer.txt не вызван на странице');
+        console.log('   2. JS загружается до рендеринга HTML');
+        console.log('   3. Кэш MODX требует очистки');
+        
+        // Попытка найти любые элементы story-viewer
+        const allViewers = document.querySelectorAll('.story-viewer');
+        console.log('🔍 Найдено элементов .story-viewer:', allViewers.length);
+        allViewers.forEach((v, i) => {
+          console.log(`   [${i}]`, v.id, v.innerHTML.substring(0, 100));
+        });
+        
         console.groupEnd();
         return;
       }
       console.log('✅ #storyViewer найден');
+      console.log('📄 HTML содержимое viewer (первые 500 символов):', this.el.innerHTML.substring(0, 500));
 
-      // Инициализация элементов
+      // Инициализация элементов с повторной проверкой
       this.progressEl = document.getElementById('storyProgress');
       this.mediaImg = document.getElementById('storyMedia');
       this.mediaVid = document.getElementById('storyVideo');
@@ -23,6 +38,41 @@
       this.instagramBtn = document.getElementById('storyInstagramBtn');
       this.overlay = document.querySelector('.story-viewer__overlay');
       this.loader = document.querySelector('.story-viewer__loader');
+      
+      // Логирование инициализации элементов
+      console.log('🔍 Проверка элементов viewer:', {
+        instagramBtn: this.instagramBtn ? '✅ найден' : '❌ НЕ НАЙДЕН',
+        instagramBtnHTML: this.instagramBtn ? this.instagramBtn.outerHTML.substring(0, 200) : null,
+        loader: this.loader ? '✅ найден' : '❌ НЕ НАЙДЕН',
+        progressEl: this.progressEl ? '✅ найден' : '❌ НЕ НАЙДЕН',
+        mediaImg: this.mediaImg ? '✅ найден' : '❌ НЕ НАЙДЕН',
+        mediaVid: this.mediaVid ? '✅ найден' : '❌ НЕ НАЙДЕН',
+        textEl: this.textEl ? '✅ найден' : '❌ НЕ НАЙДЕН',
+        prevBtn: this.prevBtn ? '✅ найден' : '❌ НЕ НАЙДЕН',
+        nextBtn: this.nextBtn ? '✅ найден' : '❌ НЕ НАЙДЕН',
+        closeBtn: this.closeBtn ? '✅ найден' : '❌ НЕ НАЙДЕН',
+        overlay: this.overlay ? '✅ найден' : '❌ НЕ НАЙДЕН'
+      });
+      
+      // Если кнопка не найдена, пробуем альтернативные селекторы
+      if (!this.instagramBtn) {
+        console.log('🔄 Попытка найти кнопку альтернативными методами...');
+        this.instagramBtn = this.el.querySelector('#storyInstagramBtn');
+        console.log('   Через querySelector("#storyInstagramBtn"):', this.instagramBtn ? '✅ найден' : '❌ НЕ НАЙДЕН');
+        
+        if (!this.instagramBtn) {
+          this.instagramBtn = this.el.querySelector('.story-viewer__instagram-btn');
+          console.log('   Через querySelector(".story-viewer__instagram-btn"):', this.instagramBtn ? '✅ найден' : '❌ НЕ НАЙДЕН');
+        }
+        
+        if (!this.instagramBtn) {
+          const allLinks = this.el.querySelectorAll('a');
+          console.log('   Найдено <a> элементов внутри viewer:', allLinks.length);
+          allLinks.forEach((a, i) => {
+            console.log(`      [${i}] href="${a.href}", class="${a.className}", id="${a.id}"`);
+          });
+        }
+      }
 
       // Состояние просмотра
       this.stories = [];
@@ -88,6 +138,21 @@
       if (this.nextBtn) this.nextBtn.addEventListener('click', (e) => { e.stopPropagation(); this.next(); });
       if (this.closeBtn) this.closeBtn.addEventListener('click', () => this.close());
       if (this.overlay) this.overlay.addEventListener('click', () => this.close());
+      
+      // Кнопка Instagram - открываем ссылку без закрытия viewer
+      // Примечание: обработчик будет установлен повторно в show() если кнопка найдена
+      console.log('🔵 bindEvents(): проверка instagramBtn для установки обработчика');
+      if (this.instagramBtn) {
+        console.log('✅ Обработчик клика на Instagram button установлен в bindEvents()');
+        this.instagramBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          console.log('🔵 Клик по кнопке Instagram зафиксирован');
+          console.log('🔗 href:', this.instagramBtn.href);
+          // Ссылка откроется в новой вкладке благодаря target="_blank" в HTML
+        });
+      } else {
+        console.warn('⚠️ ПРЕДУПРЕЖДЕНИЕ: this.instagramBtn НЕ найден при bindEvents(), обработчик будет установлен в show()');
+      }
 
       // Клавиатура
       document.addEventListener('keydown', (e) => {
@@ -214,6 +279,84 @@
 
       console.log('📊 Текущая история:', story);
       console.log('🔗 Ссылка для клика:', story.link_url || 'Нет');
+      
+      // 🔴 КРИТИЧЕСКИ ВАЖНО: Перепроверяем наличие кнопки Instagram при каждом show()
+      // Это нужно потому что кнопка может быть в DOM, но не найдена при инициализации
+      console.group('[StoryViewer] 🔍 ПЕРЕПРОВЕРКА Instagram кнопки в show()');
+      
+      // Проверяем наличие элемента в DOM напрямую
+      const directCheck = document.getElementById('storyInstagramBtn');
+      console.log('🔎 Прямая проверка document.getElementById("storyInstagramBtn"):', directCheck ? '✅ найден' : '❌ НЕ НАЙДЕН');
+      
+      // Если ранее кнопка не была найдена, но теперь есть - обновляем this.instagramBtn
+      if (!this.instagramBtn && directCheck) {
+        console.log('🔄 ВОССТАНОВЛЕНИЕ: Кнопка найдена в DOM, обновляем this.instagramBtn');
+        this.instagramBtn = directCheck;
+        
+        // Устанавливаем обработчик клика
+        this.instagramBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          console.log('🔵 Клик по кнопке Instagram зафиксирован (обработчик из show())');
+          console.log('🔗 href:', this.instagramBtn.href);
+        });
+        console.log('✅ Обработчик клика установлен в show()');
+      }
+      
+      // Проверяем через querySelector внутри el
+      const queryCheck = this.el ? this.el.querySelector('#storyInstagramBtn') : null;
+      console.log('🔎 Проверка this.el.querySelector("#storyInstagramBtn"):', queryCheck ? '✅ найден' : '❌ НЕ НАЙДЕН');
+      
+      // Проверяем через класс
+      const classCheck = this.el ? this.el.querySelector('.story-viewer__instagram-btn') : null;
+      console.log('🔎 Проверка this.el.querySelector(".story-viewer__instagram-btn"):', classCheck ? '✅ найден' : '❌ НЕ НАЙДЕН');
+      
+      // Проверяем все <a> внутри viewer
+      const allLinks = this.el ? this.el.querySelectorAll('a') : [];
+      console.log('🔎 Все <a> элементы внутри viewer:', allLinks.length);
+      allLinks.forEach((link, idx) => {
+        console.log(`   [${idx}] id="${link.id}", class="${link.className}", href="${link.href}"`);
+      });
+      
+      // Проверяем this.instagramBtn
+      if (this.instagramBtn) {
+        const computedStyle = window.getComputedStyle(this.instagramBtn);
+        console.log('✅ this.instagramBtn существует:', this.instagramBtn);
+        console.log('   display:', computedStyle.display);
+        console.log('   visibility:', computedStyle.visibility);
+        console.log('   opacity:', computedStyle.opacity);
+        console.log('   z-index:', computedStyle.zIndex);
+        console.log('   top:', computedStyle.top);
+        console.log('   left:', computedStyle.left);
+        console.log('   position:', computedStyle.position);
+        
+        // Проверка родительского элемента
+        console.log('   Родительский элемент:', this.instagramBtn.parentElement);
+        console.log('   storyContent существует:', !!document.getElementById('storyContent'));
+        
+        // Проверка на скрытие через CSS
+        console.log('   offsetWidth:', this.instagramBtn.offsetWidth);
+        console.log('   offsetHeight:', this.instagramBtn.offsetHeight);
+        console.log('   clientRect:', this.instagramBtn.getBoundingClientRect());
+        
+        // Проверка видимости кнопки
+        const isVisible = 
+          computedStyle.display !== 'none' &&
+          computedStyle.visibility !== 'hidden' &&
+          computedStyle.opacity !== '0' &&
+          this.instagramBtn.offsetWidth > 0 &&
+          this.instagramBtn.offsetHeight > 0;
+        
+        console.log('   👁️ Кнопка ВИДИМА:', isVisible ? '✅ ДА' : '❌ НЕТ (скрыта стилями)');
+      } else {
+        console.error('❌ this.instagramBtn НЕ существует в show() после всех проверок');
+        console.log('💡 Возможные причины:');
+        console.log('   1. Элемент был удалён из DOM');
+        console.log('   2. Шаблон tpl.stories.viewer.txt не содержит кнопку');
+        console.log('   3. Конфликт ID элементов');
+        console.log('   4. Кнопка находится внутри shadow DOM');
+      }
+      console.groupEnd();
+      
       console.groupEnd();
 
       if (this.loader) this.loader.classList.add('active');
@@ -285,6 +428,22 @@
 
       this.updateProgressUI();
       this.preloadNext();
+      
+      // Финальная проверка видимости после рендеринга
+      setTimeout(() => {
+        if (this.instagramBtn) {
+          const finalStyle = window.getComputedStyle(this.instagramBtn);
+          console.group('[StoryViewer] ✅ Финальная проверка видимости (через 100ms)');
+          console.log('display:', finalStyle.display);
+          console.log('visibility:', finalStyle.visibility);
+          console.log('opacity:', finalStyle.opacity);
+          console.log('offsetWidth:', this.instagramBtn.offsetWidth);
+          console.log('offsetHeight:', this.instagramBtn.offsetHeight);
+          console.groupEnd();
+        } else {
+          console.error('❌ Кнопка Instagram отсутствует после рендеринга (100ms)');
+        }
+      }, 100);
     }
 
     next() {
