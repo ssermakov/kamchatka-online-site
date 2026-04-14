@@ -23,6 +23,17 @@
       this.instagramBtn = document.getElementById('storyInstagramBtn');
       this.overlay = document.querySelector('.story-viewer__overlay');
       this.loader = document.querySelector('.story-viewer__loader');
+      
+      // Логирование инициализации элементов
+      console.log('🔍 Проверка элементов viewer:', {
+        instagramBtn: this.instagramBtn ? '✅ найден' : '❌ НЕ НАЙДЕН',
+        instagramBtnHTML: this.instagramBtn ? this.instagramBtn.outerHTML.substring(0, 200) : null,
+        loader: this.loader ? '✅ найден' : '❌ НЕ НАЙДЕН',
+        progressEl: this.progressEl ? '✅ найден' : '❌ НЕ НАЙДЕН',
+        mediaImg: this.mediaImg ? '✅ найден' : '❌ НЕ НАЙДЕН',
+        mediaVid: this.mediaVid ? '✅ найден' : '❌ НЕ НАЙДЕН',
+        textEl: this.textEl ? '✅ найден' : '❌ НЕ НАЙДЕН'
+      });
 
       // Состояние просмотра
       this.stories = [];
@@ -91,10 +102,15 @@
       
       // Кнопка Instagram - открываем ссылку без закрытия viewer
       if (this.instagramBtn) {
+        console.log('✅ Обработчик клика на Instagram button установлен');
         this.instagramBtn.addEventListener('click', (e) => {
           e.stopPropagation();
+          console.log('🔵 Клик по кнопке Instagram зафиксирован');
+          console.log('🔗 href:', this.instagramBtn.href);
           // Ссылка откроется в новой вкладке благодаря target="_blank" в HTML
         });
+      } else {
+        console.error('❌ ОШИБКА: this.instagramBtn НЕ найден при bindEvents()');
       }
 
       // Клавиатура
@@ -222,6 +238,28 @@
 
       console.log('📊 Текущая история:', story);
       console.log('🔗 Ссылка для клика:', story.link_url || 'Нет');
+      
+      // Логирование состояния кнопки Instagram при show()
+      console.group('[StoryViewer] 🔍 Проверка видимости Instagram кнопки');
+      if (this.instagramBtn) {
+        const computedStyle = window.getComputedStyle(this.instagramBtn);
+        console.log('Элемент найден:', this.instagramBtn);
+        console.log('display:', computedStyle.display);
+        console.log('visibility:', computedStyle.visibility);
+        console.log('opacity:', computedStyle.opacity);
+        console.log('z-index:', computedStyle.zIndex);
+        console.log('top:', computedStyle.top);
+        console.log('left:', computedStyle.left);
+        console.log('position:', computedStyle.position);
+        
+        // Проверка родительского элемента
+        console.log('Родительский элемент:', this.instagramBtn.parentElement);
+        console.log('storyContent существует:', !!document.getElementById('storyContent'));
+      } else {
+        console.error('❌ Кнопка Instagram НЕ найдена в show()');
+      }
+      console.groupEnd();
+      
       console.groupEnd();
 
       if (this.loader) this.loader.classList.add('active');
@@ -293,6 +331,20 @@
 
       this.updateProgressUI();
       this.preloadNext();
+      
+      // Финальная проверка видимости после рендеринга
+      setTimeout(() => {
+        if (this.instagramBtn) {
+          const finalStyle = window.getComputedStyle(this.instagramBtn);
+          console.group('[StoryViewer] ✅ Финальная проверка видимости (через 100ms)');
+          console.log('display:', finalStyle.display);
+          console.log('visibility:', finalStyle.visibility);
+          console.log('opacity:', finalStyle.opacity);
+          console.log('offsetWidth:', this.instagramBtn.offsetWidth);
+          console.log('offsetHeight:', this.instagramBtn.offsetHeight);
+          console.groupEnd();
+        }
+      }, 100);
     }
 
     next() {
