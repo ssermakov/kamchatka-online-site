@@ -21,6 +21,11 @@ if (empty($block)) {
     $titleToBlock = array(
         'Камчатка'        => 'kamchatka',
         'Направления'     => 'napravleniya',
+        'Турция'     => 'tur-stambul',
+        'Шри-Ланка'     => 'shri-lanka',
+        'Китай'     => 'kitaj',
+        'Шантары'     => 'shantaryi',
+        'Сахалин, Итуруп'     => 'saxalin-iturup',
         // При необходимости добавьте другие соответствия
     );
     if (isset($titleToBlock[$pageTitle])) {
