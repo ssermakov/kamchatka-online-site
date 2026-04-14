@@ -3,14 +3,16 @@
 
   class TourStoryViewer {
     constructor() {
-      console.log('[StoryViewer] Constructor started');
+      console.group('[StoryViewer] 🚀 Инициализация');
       this.el = document.getElementById('storyViewer');
       if (!this.el) {
-        console.error('[StoryViewer] ERROR: Element #storyViewer not found in DOM');
+        console.error('❌ ОШИБКА: Элемент #storyViewer не найден в DOM');
+        console.groupEnd();
         return;
       }
-      console.log('[StoryViewer] Element #storyViewer found', this.el);
+      console.log('✅ #storyViewer найден');
 
+      // Инициализация элементов
       this.progressEl = document.getElementById('storyProgress');
       this.mediaImg = document.getElementById('storyMedia');
       this.mediaVid = document.getElementById('storyVideo');
@@ -22,19 +24,7 @@
       this.overlay = document.querySelector('.story-viewer__overlay');
       this.loader = document.querySelector('.story-viewer__loader');
 
-      console.log('[StoryViewer] Elements initialized:', {
-        progressEl: !!this.progressEl,
-        mediaImg: !!this.mediaImg,
-        mediaVid: !!this.mediaVid,
-        textEl: !!this.textEl,
-        prevBtn: !!this.prevBtn,
-        nextBtn: !!this.nextBtn,
-        closeBtn: !!this.closeBtn,
-        instagramBtn: !!this.instagramBtn,
-        overlay: !!this.overlay,
-        loader: !!this.loader
-      });
-
+      // Состояние просмотра
       this.stories = [];
       this.currentIndex = 0;
       this.progressFrame = null;
@@ -47,82 +37,70 @@
       this.swipeThreshold = 50;
       this.currentLink = '';
 
-      this.init();
-    }
-
-    init() {
-      console.log('[StoryViewer] init() called');
-      const dataEl = document.getElementById('tour-stories-data');
-      if (!dataEl) {
-        console.error('[StoryViewer] ERROR: Element #tour-stories-data not found');
-        return;
-      }
-      console.log('[StoryViewer] Data element found:', dataEl);
-      try {
-        this.stories = JSON.parse(dataEl.textContent);
-        console.log('[StoryViewer] Stories parsed successfully:', this.stories);
-      } catch (e) {
-        console.error('[StoryViewer] ERROR: Failed to parse JSON', e);
-        return;
-      }
-      if (!Array.isArray(this.stories) || this.stories.length === 0) {
-        console.warn('[StoryViewer] WARNING: No stories found or invalid format');
-        return;
-      }
-      console.log('[StoryViewer] Stories array valid, count:', this.stories.length);
+      // Привязка событий
       this.bindEvents();
-      console.log('[StoryViewer] init() completed');
+      console.log('🎯 Обработчики событий привязаны');
+      
+      // Инициализация данных
+      const dataEl = document.getElementById('tour-stories-data');
+      if (dataEl) {
+        try {
+          this.stories = JSON.parse(dataEl.textContent);
+          console.log('📦 Успешный парсинг JSON. Количество историй:', this.stories.length);
+        } catch (e) {
+          console.error('❌ ОШИБКА парсинга JSON:', e);
+        }
+      }
+      
+      console.groupEnd();
     }
 
     bindEvents() {
-      console.log('[StoryViewer] bindEvents() called');
+      // Делегирование клика на превью
       document.addEventListener('click', (e) => {
         const item = e.target.closest('.stories-item, .stories-item__link');
-        if (item && this.el) {
-          e.preventDefault();
-          e.stopPropagation();
-          const idx = parseInt(item.dataset.index, 10);
-          console.log('[StoryViewer] Click on story item, index:', idx);
-          if (!isNaN(idx)) this.open(idx);
+        if (!item) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        const block = item.dataset.block;
+        const idx = parseInt(item.dataset.index, 10);
+
+        console.group('[StoryViewer] 🖱️ Клик по сторис');
+        console.log('📍 Элемент:', item);
+        console.log('🏷️ data-block:', block || '❌ НЕ УКАЗАН');
+        console.log('🔢 data-index:', idx);
+
+        if (block && !isNaN(idx)) {
+          console.log('✅ Данные корректны. Вызов open()...');
+          this.open(block, idx);
+        } else if (!isNaN(idx)) {
+          this.open(idx);
+        } else {
+          console.warn('⚠️ ОШИБКА: У кликнутого элемента отсутствуют data-block или data-index');
         }
+        console.groupEnd();
       }, true);
 
-      if (this.prevBtn) {
-        this.prevBtn.addEventListener('click', (e) => { e.stopPropagation(); this.prev(); });
-        console.log('[StoryViewer] Prev button event bound');
-      } else {
-        console.warn('[StoryViewer] WARNING: Prev button not found');
-      }
-      if (this.nextBtn) {
-        this.nextBtn.addEventListener('click', (e) => { e.stopPropagation(); this.next(); });
-        console.log('[StoryViewer] Next button event bound');
-      } else {
-        console.warn('[StoryViewer] WARNING: Next button not found');
-      }
-      if (this.closeBtn) {
-        this.closeBtn.addEventListener('click', () => this.close());
-        console.log('[StoryViewer] Close button event bound');
-      } else {
-        console.warn('[StoryViewer] WARNING: Close button not found');
-      }
-      if (this.overlay) {
-        this.overlay.addEventListener('click', () => this.close());
-        console.log('[StoryViewer] Overlay click event bound');
-      } else {
-        console.warn('[StoryViewer] WARNING: Overlay not found');
-      }
+      // Навигация
+      if (this.prevBtn) this.prevBtn.addEventListener('click', (e) => { e.stopPropagation(); this.prev(); });
+      if (this.nextBtn) this.nextBtn.addEventListener('click', (e) => { e.stopPropagation(); this.next(); });
+      if (this.closeBtn) this.closeBtn.addEventListener('click', () => this.close());
+      if (this.overlay) this.overlay.addEventListener('click', () => this.close());
 
+      // Клавиатура
       document.addEventListener('keydown', (e) => {
         if (!this.el || !this.el.classList.contains('open')) return;
         if (e.key === 'Escape') this.close();
         if (e.key === 'ArrowRight') this.next();
         if (e.key === 'ArrowLeft') this.prev();
       });
-      console.log('[StoryViewer] Keyboard events bound');
 
-      const pause = () => {
-        this.isPaused = true;
-        if (this.mediaVid && !this.mediaVid.paused) this.mediaVid.pause();
+      // Пауза/Старт
+      const pause = () => { 
+        this.isPaused = true; 
+        if (this.mediaVid && !this.mediaVid.paused) this.mediaVid.pause(); 
       };
       const resume = () => {
         this.isPaused = false;
@@ -140,19 +118,16 @@
       this.el.addEventListener('mouseleave', resume);
       this.el.addEventListener('touchend', resume);
       this.el.addEventListener('touchcancel', resume);
-      console.log('[StoryViewer] Pause/resume events bound');
 
+      // Клик по тексту (ссылка)
       if (this.textEl) {
         this.textEl.addEventListener('click', (e) => {
           e.stopPropagation();
-          console.log('[StoryViewer] Text clicked, link:', this.currentLink);
           if (this.currentLink) window.open(this.currentLink, '_blank', 'noopener,noreferrer');
         });
-        console.log('[StoryViewer] Text click event bound');
-      } else {
-        console.warn('[StoryViewer] WARNING: Text element not found');
       }
 
+      // Свайпы
       this.el.addEventListener('touchstart', (e) => {
         this.touchStartY = e.touches[0].clientY;
         this.touchStartX = e.touches[0].clientX;
@@ -167,35 +142,56 @@
           diffX < 0 ? this.next() : this.prev();
         }
       }, { passive: true });
-      console.log('[StoryViewer] Touch events bound');
-
-      // Проверка кнопки Instagram
-      if (this.instagramBtn) {
-        console.log('[StoryViewer] Instagram button found:', this.instagramBtn);
-        console.log('[StoryViewer] Instagram button href:', this.instagramBtn.href);
-      } else {
-        console.error('[StoryViewer] ERROR: Instagram button #storyInstagramBtn not found!');
-      }
-
-      console.log('[StoryViewer] bindEvents() completed');
     }
 
-    open(index) {
-      console.log('[StoryViewer] open() called with index:', index);
-      if (!this.el) {
-        console.error('[StoryViewer] ERROR: Cannot open, element not found');
+    open(blockOrIndex, index) {
+      console.group('[StoryViewer] 🔓 open()');
+      
+      if (typeof blockOrIndex === 'number') {
+        this.currentIndex = blockOrIndex;
+        this.show();
+        console.groupEnd();
         return;
       }
-      this.currentIndex = index;
+
+      const [block, idx] = [blockOrIndex, index];
+      console.log('📥 Запрашиваемый блок:', block);
+      console.log('📥 Запрашиваемый индекс:', idx);
+
+      const jsonId = 'tour-stories-data-' + block;
+      console.log('🔍 Поиск элемента с ID:', jsonId);
+
+      const jsonEl = document.getElementById(jsonId);
+      if (!jsonEl) {
+        console.error('❌ ОШИБКА: Скрипт #' + jsonId + ' НЕ НАЙДЕН в DOM!');
+        this.diagnoseMissingJson();
+        console.groupEnd();
+        return;
+      }
+
+      console.log('✅ Элемент найден:', jsonEl);
+      
+      try {
+        this.stories = JSON.parse(jsonEl.textContent);
+        console.log('📦 Успешный парсинг JSON. Количество историй:', this.stories.length);
+      } catch (err) {
+        console.error('❌ ОШИБКА парсинга JSON:', err);
+        console.groupEnd();
+        return;
+      }
+
+      this.currentIndex = idx;
       this.el.classList.add('open');
       this.el.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
-      console.log('[StoryViewer] Viewer opened, classes added');
+      console.log('🖼️ Viewer открыт');
+      console.groupEnd();
+
       this.show();
     }
 
     close() {
-      console.log('[StoryViewer] close() called');
+      console.log('[StoryViewer] ❌ close()');
       if (!this.el) return;
       this.el.classList.remove('open');
       this.el.setAttribute('aria-hidden', 'true');
@@ -203,23 +199,27 @@
       this.stopTimer();
       if (this.mediaVid) { this.mediaVid.pause(); this.mediaVid.src = ''; }
       this.currentLink = '';
-      console.log('[StoryViewer] Viewer closed');
     }
 
     show() {
-      console.log('[StoryViewer] show() called for index:', this.currentIndex);
+      console.group('[StoryViewer] 🎬 show()');
       this.stopTimer();
       const story = this.stories[this.currentIndex];
       if (!story) {
-        console.error('[StoryViewer] ERROR: No story found at index', this.currentIndex);
+        console.error('❌ История с индексом', this.currentIndex, 'отсутствует в массиве');
+        console.groupEnd();
+        this.close();
         return;
       }
-      console.log('[StoryViewer] Story data:', story);
+
+      console.log('📊 Текущая история:', story);
+      console.log('🔗 Ссылка для клика:', story.link_url || 'Нет');
+      console.groupEnd();
 
       if (this.loader) this.loader.classList.add('active');
 
       const rawUrl = story.url || '';
-      const fixedUrl = (rawUrl.startsWith('http') || rawUrl.startsWith('/')) ? rawUrl : '/' + rawUrl;
+      const fixedUrl = (rawUrl.indexOf('http') === 0 || rawUrl.indexOf('/') === 0) ? rawUrl : '/' + rawUrl;
 
       this.duration = story.type === 'video' ? 0 : (parseInt(story.duration, 10) || 5000);
       this.elapsed = 0;
@@ -255,7 +255,6 @@
             this.duration = this.mediaVid.duration * 1000;
             this.startTime = Date.now() - this.elapsed;
           }
-          this.mediaVid.removeEventListener('canplay', onReady);
           this.startTimer();
         };
 
@@ -286,18 +285,22 @@
 
       this.updateProgressUI();
       this.preloadNext();
-      console.log('[StoryViewer] show() completed');
     }
 
     next() {
-      console.log('[StoryViewer] next() called');
-      if (this.currentIndex < this.stories.length - 1) { this.currentIndex++; this.show(); }
-      else this.close();
+      if (this.currentIndex < this.stories.length - 1) {
+        this.currentIndex++;
+        this.show();
+      } else {
+        this.close();
+      }
     }
 
     prev() {
-      console.log('[StoryViewer] prev() called');
-      if (this.currentIndex > 0) { this.currentIndex--; this.show(); }
+      if (this.currentIndex > 0) {
+        this.currentIndex--;
+        this.show();
+      }
     }
 
     startTimer() {
@@ -305,10 +308,11 @@
       this.startTime = Date.now() - this.elapsed;
 
       if (this.mediaVid && this.mediaVid.classList.contains('active')) {
-        this.mediaVid.ontimeupdate = () => {
-          if (!this.isPaused) {
-            this.elapsed = this.mediaVid.currentTime * 1000;
-            this.updateProgressUI();
+        const self = this;
+        this.mediaVid.ontimeupdate = function() {
+          if (!self.isPaused) {
+            self.elapsed = this.currentTime * 1000;
+            self.updateProgressUI();
           }
         };
       } else {
@@ -335,7 +339,7 @@
       if (!this.stories[nextIdx]) return;
       const nextUrl = this.stories[nextIdx].url;
       if (!nextUrl) return;
-      const fixedUrl = nextUrl.startsWith('http') || nextUrl.startsWith('/') ? nextUrl : '/' + nextUrl;
+      const fixedUrl = (nextUrl.indexOf('http') === 0 || nextUrl.indexOf('/') === 0) ? nextUrl : '/' + nextUrl;
       if (this.stories[nextIdx].type === 'image') {
         const img = new Image(); img.src = fixedUrl;
       } else {
@@ -349,11 +353,30 @@
       if (this.progressFrame) cancelAnimationFrame(this.progressFrame);
       if (this.mediaVid) this.mediaVid.ontimeupdate = null;
     }
+
+    diagnoseMissingJson() {
+      console.group('🔍 Диагностический скан DOM');
+      const allScripts = document.querySelectorAll('script[id^="tour-stories-data-"]');
+      if (allScripts.length === 0) {
+        console.warn('⚠️ В странице ОТСУТСТВУЮТ любые скрипты с данными сторис.');
+        console.log('💡 Проверьте: 1) Сниппет сохранён? 2) Кэш MODX очищен? 3) Вызов в шаблоне верный?');
+      } else {
+        console.log('✅ Найдены следующие блоки данных в DOM:');
+        allScripts.forEach(s => {
+          try {
+            const data = JSON.parse(s.textContent);
+            console.log(`📜 ID: ${s.id} | Записей: ${data.length} | Первый элемент:`, data[0]);
+          } catch {
+            console.warn(`❌ Сломанный JSON в #${s.id}`);
+          }
+        });
+      }
+      console.groupEnd();
+    }
   }
 
-  console.log('[StoryViewer] Script loaded, waiting for DOMContentLoaded');
   document.addEventListener('DOMContentLoaded', () => {
-    console.log('[StoryViewer] DOMContentLoaded fired');
+    console.log('[StoryViewer] 🟢 DOMContentLoaded. Запуск класса...');
     new TourStoryViewer();
   });
 })();
