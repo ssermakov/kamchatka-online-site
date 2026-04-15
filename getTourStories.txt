@@ -1,13 +1,12 @@
 <?php
 /**
- * getTourStories
- * @param block      string  Обязательный: kamchatka|directions|sri-lanka|turkey|china (если используется фильтрация)
- * @param resourceId int     ID ресурса для TV (по умолчанию текущий)
- * @param tvName     string  Имя TV (по умолчанию tour_stories)
- * @param tplList    string  Чанк обёртки
- * @param tplItem    string  Чанк превью
- */
-
+* getTourStories
+* @param block      string  Обязательный: kamchatka|directions|sri-lanka|turkey|china (если используется фильтрация)
+* @param resourceId int     ID ресурса для TV (по умолчанию текущий)
+* @param tvName     string  Имя TV (по умолчанию tour_stories)
+* @param tplList    string  Чанк обёртки
+* @param tplItem    string  Чанк превью
+*/
 // 1. Считываем параметры
 $block      = $modx->getOption('block', $scriptProperties, '', true);
 $resourceId = $modx->getOption('resourceId', $scriptProperties, $modx->resource->id, true);
@@ -21,21 +20,17 @@ if (empty($block)) {
     $titleToBlock = array(
         'Камчатка'        => 'kamchatka',
         'Направления'     => 'napravleniya',
-        'Турция'     => 'tur-stambul',
-        'Шри-Ланка'     => 'shri-lanka',
-        'Китай'     => 'kitaj',
-        'Шантары'     => 'shantaryi',
-        'Круизы'     => 'kruizyi',
-        'Сахалин, Итуруп'     => 'saxalin-iturup',
-        // При необходимости добавьте другие соответствия
+        'Турция'          => 'tur-stambul',
+        'Шри-Ланка'       => 'shri-lanka',
+        'Китай'           => 'kitaj',
+        'Шантары'         => 'shantaryi',
+        'Круизы'          => 'kruizyi',
+        'Сахалин, Итуруп' => 'saxalin-iturup',
     );
     if (isset($titleToBlock[$pageTitle])) {
         $block = $titleToBlock[$pageTitle];
     }
 }
-
-// Логирование для отладки
-$modx->log(modX::LOG_LEVEL_ERROR, '[DEBUG getTourStories] Блок из вызова: ' . ($block ?: 'EMPTY'));
 
 // 2. Получаем TV с нужного ресурса
 $target = $modx->getObject('modResource', (int)$resourceId);
@@ -55,36 +50,38 @@ if (!empty($block)) {
     $data = array_values($filtered); // сброс индексов
 }
 
-// 4. Обработка данных
-$items   = array();
-$jsonArr = array();
+// 4. Обработка данных + Генерация JSON-LD
+$items       = array();
+$jsonArr     = array();
+$schemaItems = [];
 
 foreach ($data as $i => $story) {
     $type = isset($story['type']) ? trim($story['type']) : 'image';
     $type = in_array($type, array('image', 'video'), true) ? $type : 'image';
-
+    
     $url   = ($type === 'video') ? (isset($story['video']) ? trim($story['video']) : '') : (isset($story['thumb']) ? trim($story['thumb']) : '');
     $thumb = isset($story['thumb']) ? trim($story['thumb']) : '';
+    
     if (empty($url)) continue;
 
     // Нормализация путей
     if (!preg_match('#^https?://#i', $url))  $url  = '/' . ltrim($url, '/');
     if (!empty($thumb) && !preg_match('#^https?://#i', $thumb)) $thumb = '/' . ltrim($thumb, '/');
-
+    
     // Обработка ссылки
     $linkUrl = isset($story['link_url']) ? trim($story['link_url']) : '';
     if (!empty($linkUrl) && !preg_match('#^https?://|^/#i', $linkUrl)) {
         $linkUrl = '/' . ltrim($linkUrl, '/');
     }
-
+    
     // Длительность
     $duration = isset($story['duration']) ? (int)$story['duration'] : 6000;
     if ($duration < 2000) $duration = 2000;
-
+    
     // Текст
     $text = isset($story['text']) ? htmlspecialchars($story['text'], ENT_QUOTES, 'UTF-8') : '';
 
-    // Данные для JSON
+    // Данные для JSON (JS)
     $jsonArr[] = array(
         'index'    => (int)$i,
         'type'     => $type,
@@ -94,18 +91,31 @@ foreach ($data as $i => $story) {
         'duration' => (int)$duration
     );
 
+    // 🧩 JSON-LD: Структурированные данные для SEO (без лишнего HTML)
+    $schemaItems[] = [
+        '@context'    => 'https://schema.org',
+        '@type'       => $type === 'video' ? 'VideoObject' : 'ImageObject',
+        'name'        => $text ?: 'История тура',
+        'contentUrl'  => $url,
+        'description' => $text,
+        'uploadDate'  => date('c')
+    ];
+
     // Данные для чанка превью
     $items[] = $modx->getChunk($tplItem, array(
         'index' => (int)$i,
         'thumb' => htmlspecialchars($thumb, ENT_QUOTES, 'UTF-8'),
         'alt'   => ($text !== '') ? $text : 'История ' . ($i + 1),
-        'block' => !empty($block) ? $block : '' // ⚠️ Обязательно для JS, если используется фильтрация
+        'block' => !empty($block) ? $block : '' 
     ));
 }
 
 if (empty($items)) return '';
 
-// 5. Генерация JSON
+// Генерация JSON-LD скрипта
+$jsonLd = '<script type="application/ld+json">' . json_encode($schemaItems, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>';
+
+// 5. Генерация JSON для JS
 $flags = JSON_UNESCAPED_UNICODE;
 if (defined('JSON_UNESCAPED_SLASHES')) $flags |= JSON_UNESCAPED_SLASHES;
 
@@ -113,14 +123,15 @@ if (!empty($block)) {
     // Изолированный JSON с уникальным ID
     $safeBlock = preg_replace('#[^a-z0-9\-]#i', '', $block);
     $jsonScript = '<script type="application/json" id="tour-stories-data-' . $safeBlock . '">'
-                . json_encode($jsonArr, $flags) . '</script>';
+        . json_encode($jsonArr, $flags) . '</script>';
 } else {
     // Общий JSON
     $jsonScript = '<script type="application/json" id="tour-stories-data">'
-                . json_encode($jsonArr, $flags) . '</script>';
+        . json_encode($jsonArr, $flags) . '</script>';
 }
 
-return $jsonScript . $modx->getChunk($tplList, array(
+// Возвращаем: JSON-LD (SEO) + JSON (Data) + HTML (Viewer)
+return $jsonLd . $jsonScript . $modx->getChunk($tplList, array(
     'items' => implode('', $items),
     'block' => !empty($block) ? $block : ''
 ));
