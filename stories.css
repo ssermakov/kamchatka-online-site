@@ -7,13 +7,29 @@
   --story-ring-active: #fff;
 }
 
+/* 🔍 SEO: Блок с полным контентом для роботов. 
+   Занимает 0 места, не виден пользователю, но есть в DOM */
+.stories-seo-content {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 /* Список превью */
 .stories-list {
   display: flex;
   gap: 10px;
   overflow-x: auto;
   padding: 10px 0;
-  margin: 0 auto; /* Центрирование при малом количестве элементов */
+  margin: 0 auto;
   justify-content: center;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -28,6 +44,8 @@
   justify-content: center;
   width: 100%;
   padding: 0;
+  position: relative; /* Чтобы позиционирование детей было корректным */
+  z-index: 1;
 }
 
 /* Фикс для Safari: отключаем скроллбар */
@@ -272,7 +290,7 @@
 /* Кнопка Instagram */
 .story-viewer__instagram-btn {
   position: absolute;
-    top: 12px;
+  top: 12px;
   left: 12px;
   z-index: 100;
   display: flex !important;
@@ -308,11 +326,9 @@
     padding-left: 15px;
     padding-right: 15px;
   }
-
   .story-viewer__instagram-btn span {
     display: none;
   }
-
   .story-viewer__instagram-btn {
     padding: 8px;
     border-radius: 50%;
@@ -350,7 +366,6 @@
     max-width: none;
     max-height: none;
   }
-
   .story-viewer__text {
     bottom: 48px;
   }
@@ -359,7 +374,7 @@
 /* Базовое правило для всех секций */
 section {
   padding-top: 0px;
-  padding-bottom: 0; /* Убран нижний отступ */
+  padding-bottom: 0;
 }
 
 /* Переопределение специфичных секций, которые возвращают padding */
@@ -374,7 +389,6 @@ section {
     padding-top: 60px;
     padding-bottom: 0;
   }
-
   .cruises {
     padding-top: 50px;
     padding-bottom: 0;
