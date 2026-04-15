@@ -3,28 +3,10 @@
 
   class TourStoryViewer {
     constructor() {
-      console.group('[StoryViewer] 🚀 Инициализация');
-      
       this.el = document.getElementById('storyViewer');
-      if (!this.el) {
-        console.error('❌ ОШИБКА: Элемент #storyViewer не найден в DOM');
-        console.log('💡 Возможные причины:');
-        console.log('   1. Шаблон tpl.stories.viewer.txt не вызван на странице');
-        console.log('   2. JS загружается до рендеринга HTML');
-        console.log('   3. Кэш MODX требует очистки');
+      if (!this.el) return;
 
-        const allViewers = document.querySelectorAll('.story-viewer');
-        console.log('🔍 Найдено элементов .story-viewer:', allViewers.length);
-        allViewers.forEach((v, i) => {
-          console.log(`   [${i}]`, v.id, v.innerHTML.substring(0, 100));
-        });
-
-        console.groupEnd();
-        return;
-      }
-      console.log('✅ #storyViewer найден');
-
-      // Инициализация элементов
+      // Инициализация элементов (исправлены пробелы в ID из исходника)
       this.progressEl = document.getElementById('storyProgress');
       this.mediaImg   = document.getElementById('storyMedia');
       this.mediaVid   = document.getElementById('storyVideo');
@@ -33,25 +15,10 @@
       this.nextBtn    = document.getElementById('storyNext');
       this.closeBtn   = document.getElementById('storyClose');
       this.instagramBtn = document.getElementById('storyInstagramBtn');
-      this.overlay    = document.querySelector('.story-viewer__overlay');
-      this.loader     = document.querySelector('.story-viewer__loader');
+      this.overlay    = this.el.querySelector('.story-viewer__overlay');
+      this.loader     = this.el.querySelector('.story-viewer__loader');
 
-      // Логирование элементов
-      console.log('🔍 Проверка элементов viewer:', {
-        instagramBtn: this.instagramBtn ? '✅ найден' : '❌ НЕ НАЙДЕН',
-        loader: this.loader ? '✅ найден' : '❌ НЕ НАЙДЕН',
-        progressEl: this.progressEl ? '✅ найден' : '❌ НЕ НАЙДЕН'
-      });
-
-      // Фоллбэк для Instagram кнопки
-      if (!this.instagramBtn) {
-        console.log('🔄 Попытка найти кнопку альтернативными методами...');
-        this.instagramBtn = this.el.querySelector('#storyInstagramBtn') || 
-                            this.el.querySelector('.story-viewer__instagram-btn');
-        console.log('   Альтернативный поиск:', this.instagramBtn ? '✅ найден' : '❌ НЕ НАЙДЕН');
-      }
-
-      // Состояние просмотра
+      // Состояние
       this.stories = [];
       this.currentIndex = 0;
       this.progressFrame = null;
@@ -63,27 +30,15 @@
       this.touchStartX = 0;
       this.swipeThreshold = 50;
       this.currentLink = '';
+      this._triggerEl = null; // ♿ Для возврата фокуса
 
-      // 🔑 Yandex.Metrica настройки
-      this.ymCounterId = 12345678; // ⚠️ ЗАМЕНИТЕ на номер вашего счётчика Метрики
+      // 📊 Метрика
+      this.ymCounterId = 99999999; // ⚠️ ЗАМЕНИТЕ на ваш ID счётчика
       this.viewedStories = new Set();
       this.currentBlock = '';
 
       this.bindEvents();
-      console.log('🎯 Обработчики событий привязаны');
-
-      // Инициализация данных
-      const dataEl = document.getElementById('tour-stories-data');
-      if (dataEl) {
-        try {
-          this.stories = JSON.parse(dataEl.textContent);
-          console.log('📦 Успешный парсинг JSON. Количество историй:', this.stories.length);
-        } catch (e) {
-          console.error('❌ ОШИБКА парсинга JSON:', e);
-        }
-      }
-
-      console.groupEnd();
+      this.loadData('tour-stories-data'); // Загрузка общего JSON при старте
     }
 
     bindEvents() {
@@ -91,43 +46,26 @@
       document.addEventListener('click', (e) => {
         const item = e.target.closest('.stories-item, .stories-item__link');
         if (!item) return;
-
         e.preventDefault();
         e.stopPropagation();
 
+        this._triggerEl = item; // ♿ Сохраняем элемент для возврата фокуса
         const block = item.dataset.block;
         const idx = parseInt(item.dataset.index, 10);
 
-        console.group('[StoryViewer] 🖱️ Клик по сторис');
-        console.log('📍 Элемент:', item);
-        console.log('🏷️ data-block:', block || '❌ НЕ УКАЗАН');
-        console.log('🔢 data-index:', idx);
-
-        if (block && !isNaN(idx)) {
-          this.open(block, idx);
-        } else if (!isNaN(idx)) {
-          this.open(idx);
-        } else {
-          console.warn('⚠️ У кликнутого элемента отсутствуют data-block или data-index');
-        }
-        console.groupEnd();
+        if (block && !isNaN(idx)) this.open(block, idx);
+        else if (!isNaN(idx)) this.open(idx);
       }, true);
 
-      // Навигация
       if (this.prevBtn) this.prevBtn.addEventListener('click', (e) => { e.stopPropagation(); this.prev(); });
       if (this.nextBtn) this.nextBtn.addEventListener('click', (e) => { e.stopPropagation(); this.next(); });
       if (this.closeBtn) this.closeBtn.addEventListener('click', () => this.close());
       if (this.overlay) this.overlay.addEventListener('click', () => this.close());
 
-      // Кнопка Instagram
       if (this.instagramBtn) {
-        this.instagramBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          console.log('🔵 Клик по кнопке Instagram зафиксирован');
-        });
+        this.instagramBtn.addEventListener('click', (e) => e.stopPropagation());
       }
 
-      // Клавиатура
       document.addEventListener('keydown', (e) => {
         if (!this.el || !this.el.classList.contains('open')) return;
         if (e.key === 'Escape') this.close();
@@ -136,10 +74,7 @@
       });
 
       // Пауза/Старт
-      const pause = () => {
-        this.isPaused = true;
-        if (this.mediaVid && !this.mediaVid.paused) this.mediaVid.pause();
-      };
+      const pause = () => { this.isPaused = true; if (this.mediaVid && !this.mediaVid.paused) this.mediaVid.pause(); };
       const resume = () => {
         this.isPaused = false;
         if (this.mediaVid && this.mediaVid.classList.contains('active')) {
@@ -157,7 +92,6 @@
       this.el.addEventListener('touchend', resume);
       this.el.addEventListener('touchcancel', resume);
 
-      // Клик по тексту (ссылка)
       if (this.textEl) {
         this.textEl.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -165,7 +99,6 @@
         });
       }
 
-      // Свайпы
       this.el.addEventListener('touchstart', (e) => {
         this.touchStartY = e.touches[0].clientY;
         this.touchStartX = e.touches[0].clientX;
@@ -182,77 +115,57 @@
       }, { passive: true });
     }
 
+    loadData(jsonId) {
+      const el = document.getElementById(jsonId);
+      if (el) {
+        try { this.stories = JSON.parse(el.textContent); } catch (e) { console.error('JSON parse error:', e); }
+      }
+    }
+
     open(blockOrIndex, index) {
-      console.group('[StoryViewer] 🔓 open()');
-
       if (typeof blockOrIndex === 'number') {
-        this.currentBlock = ''; // Сброс блока при прямом вызове по индексу
+        this.currentBlock = '';
         this.currentIndex = blockOrIndex;
-        this.show();
-        console.groupEnd();
-        return;
+      } else {
+        this.currentBlock = blockOrIndex; // 🔍 Для сегментации в Метрике
+        this.loadData('tour-stories-data-' + blockOrIndex);
+        this.currentIndex = index;
       }
 
-      const [block, idx] = [blockOrIndex, index];
-      this.currentBlock = block || ''; // 🔑 Сохраняем текущий блок для метрики
-
-      console.log('📥 Запрашиваемый блок:', block);
-      console.log('📥 Запрашиваемый индекс:', idx);
-
-      const jsonId = 'tour-stories-data-' + block;
-      const jsonEl = document.getElementById(jsonId);
-      if (!jsonEl) {
-        console.error('❌ Скрипт #' + jsonId + ' НЕ НАЙДЕН в DOM!');
-        this.diagnoseMissingJson();
-        console.groupEnd();
-        return;
-      }
-
-      try {
-        this.stories = JSON.parse(jsonEl.textContent);
-        console.log('📦 Успешный парсинг JSON. Количество историй:', this.stories.length);
-      } catch (err) {
-        console.error('❌ ОШИБКА парсинга JSON:', err);
-        console.groupEnd();
-        return;
-      }
-
-      this.currentIndex = idx;
       this.el.classList.add('open');
       this.el.setAttribute('aria-hidden', 'false');
+      this.el.setAttribute('role', 'dialog'); // ♿ Семантика модалки
+      this.el.setAttribute('aria-modal', 'true');
       document.body.style.overflow = 'hidden';
       
-      console.groupEnd();
       this.show();
     }
 
     close() {
-      console.log('[StoryViewer] ❌ close()');
       if (!this.el) return;
       this.el.classList.remove('open');
       this.el.setAttribute('aria-hidden', 'true');
+      this.el.removeAttribute('role');
+      this.el.removeAttribute('aria-modal');
       document.body.style.overflow = '';
+      
       this.stopTimer();
       if (this.mediaVid) { this.mediaVid.pause(); this.mediaVid.src = ''; }
       this.currentLink = '';
+      
+      // ♿ Возвращаем фокус на элемент, открывший сторис
+      if (this._triggerEl) this._triggerEl.focus();
     }
 
     show() {
-      console.group('[StoryViewer] 🎬 show()');
       this.stopTimer();
-      
       const story = this.stories[this.currentIndex];
-      if (!story) {
-        console.error('❌ История с индексом', this.currentIndex, 'отсутствует');
-        console.groupEnd();
-        this.close();
-        return;
-      }
+      if (!story) { this.close(); return; }
 
       if (this.loader) this.loader.classList.add('active');
 
       const rawUrl = story.url || '';
-      const fixedUrl = (rawUrl.indexOf('http') === 0 || rawUrl.indexOf('/') === 0) ? rawUrl : '/' + rawUrl;
+      const fixedUrl = (rawUrl.startsWith('http') || rawUrl.startsWith('/')) ? rawUrl : '/' + rawUrl;
 
       this.duration = story.type === 'video' ? 0 : (parseInt(story.duration, 10) || 5000);
       this.elapsed = 0;
@@ -291,58 +204,29 @@
         this.mediaImg.classList.add('active');
         this.mediaImg.src = fixedUrl;
 
-        const hideLoaderAndStart = () => {
-          if (this.loader) this.loader.classList.remove('active');
-          this.startTimer();
-        };
-
-        if (this.mediaImg.complete && this.mediaImg.naturalWidth > 0) hideLoaderAndStart();
+        const hideAndStart = () => { if (this.loader) this.loader.classList.remove('active'); this.startTimer(); };
+        if (this.mediaImg.complete && this.mediaImg.naturalWidth > 0) hideAndStart();
         else {
-          this.mediaImg.onload = hideLoaderAndStart;
-          this.mediaImg.onerror = () => {
-            if (this.loader) this.loader.classList.remove('active');
-            this.startTimer();
-          };
+          this.mediaImg.onload = hideAndStart;
+          this.mediaImg.onerror = hideAndStart;
         }
       }
 
       this.updateProgressUI();
       this.preloadNext();
-      
-      // 🔑 Отправка цели в Яндекс.Метрику
+
+      // 📊 Отправка цели в Яндекс.Метрику
       this.trackView(story);
-
-      console.groupEnd();
     }
 
-    next() {
-      if (this.currentIndex < this.stories.length - 1) {
-        this.currentIndex++;
-        this.show();
-      } else {
-        this.close();
-      }
-    }
-
-    prev() {
-      if (this.currentIndex > 0) {
-        this.currentIndex--;
-        this.show();
-      }
-    }
+    next() { if (this.currentIndex < this.stories.length - 1) { this.currentIndex++; this.show(); } else { this.close(); } }
+    prev() { if (this.currentIndex > 0) { this.currentIndex--; this.show(); } }
 
     startTimer() {
       this.isPaused = false;
       this.startTime = Date.now() - this.elapsed;
-
       if (this.mediaVid && this.mediaVid.classList.contains('active')) {
-        const self = this;
-        this.mediaVid.ontimeupdate = function() {
-          if (!self.isPaused) {
-            self.elapsed = this.currentTime * 1000;
-            self.updateProgressUI();
-          }
-        };
+        this.mediaVid.ontimeupdate = () => { if (!this.isPaused) { this.elapsed = this.mediaVid.currentTime * 1000; this.updateProgressUI(); } };
       } else {
         this.progressFrame = requestAnimationFrame(() => this.tick());
       }
@@ -363,18 +247,11 @@
     }
 
     preloadNext() {
-      const nextIdx = this.currentIndex + 1;
-      if (!this.stories[nextIdx]) return;
-      const nextUrl = this.stories[nextIdx].url;
-      if (!nextUrl) return;
-      const fixedUrl = (nextUrl.indexOf('http') === 0 || nextUrl.indexOf('/') === 0) ? nextUrl : '/' + nextUrl;
-      
-      if (this.stories[nextIdx].type === 'image') {
-        const img = new Image(); img.src = fixedUrl;
-      } else {
-        const vid = document.createElement('video');
-        vid.src = fixedUrl; vid.preload = 'metadata'; vid.playsInline = true;
-      }
+      const next = this.stories[this.currentIndex + 1];
+      if (!next) return;
+      const url = next.url.startsWith('http') || next.url.startsWith('/') ? next.url : '/' + next.url;
+      if (next.type === 'image') { new Image().src = url; }
+      else { const v = document.createElement('video'); v.src = url; v.preload = 'metadata'; }
     }
 
     stopTimer() {
@@ -383,35 +260,10 @@
       if (this.mediaVid) this.mediaVid.ontimeupdate = null;
     }
 
-    diagnoseMissingJson() {
-      console.group('🔍 Диагностический скан DOM');
-      const allScripts = document.querySelectorAll('script[id^="tour-stories-data-"]');
-      if (allScripts.length === 0) {
-        console.warn('⚠️ В странице ОТСУТСТВУЮТ любые скрипты с данными сторис.');
-        console.log('💡 Проверьте: 1) Сниппет сохранён? 2) Кэш MODX очищен? 3) Вызов в шаблоне верный?');
-      } else {
-        console.log('✅ Найдены следующие блоки данных в DOM:');
-        allScripts.forEach(s => {
-          try {
-            const data = JSON.parse(s.textContent);
-            console.log(`📜 ID: ${s.id} | Записей: ${data.length}`);
-          } catch {
-            console.warn(`❌ Сломанный JSON в #${s.id}`);
-          }
-        });
-      }
-      console.groupEnd();
-    }
-
-    /**
-     * 🔑 Отправка цели в Яндекс.Метрику
-     * Защищена от дубликатов (Set) и передаёт параметры для сегментации
-     */
+    /** 📊 Яндекс.Метрика: отслеживание просмотра */
     trackView(story) {
       const key = `${this.currentBlock || 'global'}:${this.currentIndex}`;
-      
-      // Дедупликация: цель сработает только при первом показе этой сторис за сессию
-      if (this.viewedStories.has(key)) return;
+      if (this.viewedStories.has(key)) return; // Дедупликация
       this.viewedStories.add(key);
 
       if (typeof ym === 'function') {
@@ -419,18 +271,11 @@
           block: this.currentBlock,
           index: this.currentIndex,
           type: story.type,
-          has_link: !!story.link_url,
-          duration_ms: this.duration
+          has_link: !!story.link_url
         });
-        console.log('[StoryViewer] 📊 Yandex.Metrica: story_viewed отправлена', { key });
-      } else {
-        console.warn('[StoryViewer] ⚠️ ym() не найден. Убедитесь, что код Метрики подключён на странице.');
       }
     }
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    console.log('[StoryViewer] 🟢 DOMContentLoaded. Запуск класса...');
-    new TourStoryViewer();
-  });
+  document.addEventListener('DOMContentLoaded', () => new TourStoryViewer());
 })();
