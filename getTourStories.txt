@@ -38,15 +38,26 @@ $raw    = $target ? $target->getTVValue($tvName) : '';
 $data   = $modx->fromJSON($raw);
 if (!is_array($data)) return '';
 
+
 // 3. ФИЛЬТРАЦИЯ по story_block и active (если блок указан)
 if (!empty($block)) {
     $filtered = array();
     foreach ($data as $s) {
-        // Проверяем совпадение блока И активность (по умолчанию считаем активным, если поле отсутствует для обратной совместимости)
-        $isActive = isset($s['active']) ? (int)$s['active'] : 1; 
+        // Проверяем активность (по умолчанию считаем активным, если поле отсутствует для обратной совместимости)
+        $isActive = isset($s['active']) ? (int)$s['active'] : 1;
+        if ($isActive !== 1) continue;
         
-        if ($isActive === 1 && isset($s['story_block']) && $s['story_block'] === $block) {
-            $filtered[] = $s;
+        // Специальная логика для блока "направления"
+        if ($block === 'napravleniya') {
+            // В блок "направления" попадают все истории, кроме относящихся к блоку "kamchatka"
+            if (isset($s['story_block']) && $s['story_block'] !== 'kamchatka') {
+                $filtered[] = $s;
+            }
+        } else {
+            // Обычная логика: фильтруем по указанному блоку
+            if (isset($s['story_block']) && $s['story_block'] === $block) {
+                $filtered[] = $s;
+            }
         }
     }
     if (empty($filtered)) return '';
