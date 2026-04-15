@@ -31,7 +31,10 @@ if (empty($block)) {
         $block = $titleToBlock[$pageTitle];
     }
 }
-
+// Если блок всё ещё не определён - прекращаем выполнение
+if (empty($block)) {
+    return ''; // Не показываем истории при отсутствии блока
+}
 // 2. Получаем TV с нужного ресурса
 $target = $modx->getObject('modResource', (int)$resourceId);
 $raw    = $target ? $target->getTVValue($tvName) : '';
