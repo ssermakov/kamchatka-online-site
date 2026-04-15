@@ -38,16 +38,29 @@ $raw    = $target ? $target->getTVValue($tvName) : '';
 $data   = $modx->fromJSON($raw);
 if (!is_array($data)) return '';
 
-// 3. ФИЛЬТРАЦИЯ по story_block (если блок указан)
+// 3. ФИЛЬТРАЦИЯ по story_block и active (если блок указан)
 if (!empty($block)) {
     $filtered = array();
     foreach ($data as $s) {
-        if (isset($s['story_block']) && $s['story_block'] === $block) {
+        // Проверяем совпадение блока И активность (по умолчанию считаем активным, если поле отсутствует для обратной совместимости)
+        $isActive = isset($s['active']) ? (int)$s['active'] : 1; 
+        
+        if ($isActive === 1 && isset($s['story_block']) && $s['story_block'] === $block) {
             $filtered[] = $s;
         }
     }
     if (empty($filtered)) return '';
     $data = array_values($filtered); // сброс индексов
+} else {
+    // Если блок не указан, все равно фильтруем неактивные записи из общего списка
+    $filtered = array();
+    foreach ($data as $s) {
+        $isActive = isset($s['active']) ? (int)$s['active'] : 1;
+        if ($isActive === 1) {
+            $filtered[] = $s;
+        }
+    }
+    $data = $filtered;
 }
 
 // 4. Обработка данных + Генерация JSON-LD
