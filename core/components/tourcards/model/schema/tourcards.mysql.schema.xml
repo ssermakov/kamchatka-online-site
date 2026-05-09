@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model package="tourcards" baseClass="xPDOObject" platform="mysql" defaultEngine="InnoDB" tablePrefix="">
+    <!-- 
+        Основная модель компонента TourCards
+        platform="mysql" - указываем целевую СУБД для совместимости с MODX 2.8.8
+        defaultEngine="InnoDB" - используем транзакционный движок для целостности данных
+        tablePrefix="" - префикс таблиц добавляется автоматически через {$table_prefix}
+    -->
+    
+    <object class="TourCard" table="tourcards_cards">
+        <!-- 
+            Класс TourCard соответствует таблице tourcards_cards
+            Имя класса в верхнем регистре (CamelCase) по стандартам MODX
+            Имя таблицы в нижнем регистре со знаком подчёркивания
+        -->
+        
+        <fields>
+            <!-- Первичный ключ: автоинкремент, обязательное поле -->
+            <field key="id" dbtype="int" precision="11" phptype="int" null="false" index="pk" generated="native" />
+            
+            <!-- Фраза-триггер: уникальное поле для идентификации карточки -->
+            <!-- index="true" + unique="true" обеспечивают быстрый поиск и предотвращают дубликаты -->
+            <field key="trigger_phrase" dbtype="varchar" precision="255" phptype="string" null="false" default="" index="unique" />
+            
+            <!-- Путь к изображению: увеличенный размер для полных URL и путей -->
+            <field key="image" dbtype="varchar" precision="512" phptype="string" null="true" default="" />
+            
+            <!-- Текстовый контент: тип text для большого объёма данных -->
+            <field key="text" dbtype="text" phptype="string" null="true" />
+            
+            <!-- Ссылка на тур: аналогично image, поддерживаем полные URL -->
+            <field key="tour_link" dbtype="varchar" precision="512" phptype="string" null="true" default="" />
+            
+            <!-- Флаг активности: tinyint(1) для булевых значений в MySQL -->
+            <field key="active" dbtype="tinyint" precision="1" phptype="boolean" null="false" default="1" />
+            
+            <!-- Позиция сортировки: для ручного управления порядком вывода -->
+            <field key="position" dbtype="int" precision="11" phptype="int" null="false" default="0" />
+            
+            <!-- Родительская карточка: nullable для корневых элементов -->
+            <!-- index="true" ускоряет выборку дочерних элементов -->
+            <field key="parent_id" dbtype="int" precision="11" phptype="int" null="true" default="" index="index" />
+            
+            <!-- Временные метки: для отслеживания создания и изменений -->
+            <field key="created_at" dbtype="datetime" phptype="datetime" null="true" />
+            <field key="updated_at" dbtype="datetime" phptype="datetime" null="true" />
+        </fields>
+        
+        <!-- Индексы для оптимизации выборок -->
+        <indexes>
+            <!-- Первичный ключ уже указан в поле id, дублировать не нужно -->
+            
+            <!-- Уникальный индекс на trigger_phrase для быстрого поиска и защиты от дублей -->
+            <index alias="trigger_phrase" name="trigger_phrase" primary="false" unique="true" type="BTREE">
+                <column key="trigger_phrase" length="" collation="A" null="false" />
+            </index>
+            
+            <!-- Индекс на parent_id для ускорения выборок дочерних элементов -->
+            <index alias="parent_id" name="parent_id" primary="false" unique="false" type="BTREE">
+                <column key="parent_id" length="" collation="A" null="true" />
+            </index>
+            
+            <!-- Составной индекс для активных карточек с сортировкой по позиции -->
+            <!-- Полезен для основных выборок в сниппете -->
+            <index alias="active_position" name="active_position" primary="false" unique="false" type="BTREE">
+                <column key="active" length="" collation="A" null="false" />
+                <column key="position" length="" collation="A" null="false" />
+            </index>
+        </indexes>
+        
+        <!-- Отношения для работы с вложенностью -->
+        <composites>
+            <!-- Дочерние карточки: одна ко многим через parent_id -->
+            <!-- cascade="remove" удаляет дочерние при удалении родителя (опционально) -->
+            <composite alias="Children" class="TourCard" local="id" foreign="parent_id" cardinality="many" owner="local" cascade="remove" />
+        </composites>
+        
+        <aggregates>
+            <!-- Родительская карточка: многие к одному через parent_id -->
+            <!-- Позволяет получить родителя через $card->getOne('Parent') -->
+            <aggregate alias="Parent" class="TourCard" local="parent_id" foreign="id" cardinality="one" owner="foreign" />
+        </aggregates>
+    </object>
+</model>
