@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    xPDO Schema для пакета touristcards
+    Совместимо с MODX Revolution 2.8.8-pl и PHP 5.6+
+    
+    Таблица хранит интерактивные карточки туристических объектов
+    с поддержкой вложенности (карточка внутри карточки)
+-->
+<model package="touristcards" baseClass="xPDOObject" platform="mysql" defaultEngine="MyISAM" tablePrefix="">
+    <object class="TouristCard" table="tourist_cards" extends="xPDOObject">
+        <!-- Мета-информация о таблице -->
+        <fields>
+            <!-- Первичный ключ: автоинкремент ID -->
+            <field key="id" dbtype="int" precision="10" phptype="int" null="false" index="pk" generated="native" />
+            
+            <!-- Родительская карточка: поддержка вложенности -->
+            <!-- parent_id = 0 означает, что карточка корневая -->
+            <field key="parent_id" dbtype="int" precision="10" phptype="int" null="false" default="0" index="index" />
+            
+            <!-- Триггер-фраза: уникальное значение для вызова карточки -->
+            <field key="trigger_phrase" dbtype="varchar" precision="255" phptype="string" null="false" index="unique" />
+            
+            <!-- Заголовок карточки -->
+            <field key="title" dbtype="varchar" precision="255" phptype="string" null="false" />
+            
+            <!-- Основной контент карточки (HTML разрешён) -->
+            <field key="content" dbtype="text" phptype="string" null="false" />
+            
+            <!-- URL изображения карточки -->
+            <field key="image_url" dbtype="varchar" precision="512" phptype="string" null="true" default="" />
+            
+            <!-- Ссылка на виртуальный тур или внешний ресурс -->
+            <field key="tour_link" dbtype="varchar" precision="512" phptype="string" null="true" default="" />
+            
+            <!-- Флаг активности: 1 = показывать, 0 = скрыть -->
+            <field key="is_active" dbtype="tinyint" precision="1" phptype="int" null="false" default="1" index="index" />
+            
+            <!-- Порядок сортировки в списке -->
+            <field key="sortorder" dbtype="int" precision="10" phptype="int" null="false" default="0" index="index" />
+            
+            <!-- Timestamp создания записи -->
+            <field key="createdon" dbtype="int" precision="10" phptype="int" null="false" default="0" />
+            
+            <!-- Timestamp последнего редактирования -->
+            <field key="editedon" dbtype="int" precision="10" phptype="int" null="false" default="0" />
+        </fields>
+        
+        <!-- Индексы для оптимизации выборок -->
+        <indexes>
+            <!-- Первичный ключ -->
+            <index alias="PRIMARY" name="PRIMARY" primary="true" unique="true" type="BTREE">
+                <column key="id" length="" collation="A" null="false" />
+            </index>
+            
+            <!-- Уникальный индекс по trigger_phrase для быстрого поиска -->
+            <index alias="trigger_phrase" name="trigger_phrase" primary="false" unique="true" type="BTREE">
+                <column key="trigger_phrase" length="" collation="A" null="false" />
+            </index>
+            
+            <!-- Индекс по parent_id для выборки дочерних карточек -->
+            <index alias="parent_id" name="parent_id" primary="false" unique="false" type="BTREE">
+                <column key="parent_id" length="" collation="A" null="false" />
+            </index>
+            
+            <!-- Индекс по is_active для фильтрации активных карточек -->
+            <index alias="is_active" name="is_active" primary="false" unique="false" type="BTREE">
+                <column key="is_active" length="" collation="A" null="false" />
+            </index>
+            
+            <!-- Индекс по sortorder для сортировки -->
+            <index alias="sortorder" name="sortorder" primary="false" unique="false" type="BTREE">
+                <column key="sortorder" length="" collation="A" null="false" />
+            </index>
+        </indexes>
+        
+        <!-- Агрегации (связи) для работы с вложенностью -->
+        <aggregates>
+            <!-- Связь с родительской карточкой -->
+            <!-- Одна карточка имеет одного родителя (или не имеет, если parent_id=0) -->
+            <aggregate alias="Parent" class="TouristCard" local="parent_id" foreign="id" owner="foreign" cardinality="one" />
+        </aggregates>
+        
+        <!-- Композиты (связи) для получения дочерних карточек -->
+        <composites>
+            <!-- Связь с дочерними карточками -->
+            <!-- Одна карточка может иметь много дочерних -->
+            <composite alias="Children" class="TouristCard" local="id" foreign="parent_id" owner="local" cardinality="many" />
+        </composites>
+    </object>
+</model>

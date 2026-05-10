@@ -1,27 +1,62 @@
-```
+```php
 # Compiled and build artifacts
-*.pyc
-__pycache__/
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.a
+*.out
 
 # Dependencies
-node_modules/
 vendor/
+node_modules/
 composer.lock
 
 # Logs and temp files
 *.log
 *.tmp
 *.swp
+*.swo
 
 # Environment
 .env
 .env.local
-*.env.*
+.env.*
 
 # Editors
 .vscode/
 .idea/
+*.sublime-project
+*.sublime-workspace
 
-# Database and schema related
-*.mysql.schema.xml
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# PHP specific
+*.php~
+*.bak
+*.backup
+
+# Cache and temporary directories
+.cache/
+tmp/
+temp/
+
+# Coverage reports
+coverage/
+htmlcov/
+.coverage
+
+# Distribution archives
+*.tar
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.zip
+*.gz
+*.rar
+*.7z
 ```
